@@ -47,7 +47,13 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 #iabTip{border-color:#9aa6c4;color:#e8ecf8;background:rgba(10,12,24,.86);box-shadow:0 0 0 2px #10131f,0 0 10px rgba(0,0,0,.5);font:700 12px/1.2 system-ui,sans-serif;letter-spacing:.2px;padding:7px 12px;white-space:nowrap;max-width:94vw}
 #rotTip{position:absolute;z-index:6;display:none;pointer-events:none;text-align:center;font:600 12px/1.5 system-ui,sans-serif;color:rgba(232,236,248,.85);background:rgba(10,12,24,.55);border:1px solid rgba(154,166,196,.45);border-radius:12px;padding:5px 12px;white-space:nowrap}
 #rotTip.show{display:block}
-#rotTip2{color:rgba(255,210,63,.85)}
+#rotTip2,.openBtn{pointer-events:auto;display:inline-block;margin-top:6px;padding:8px 14px;border-radius:999px;border:2px solid #ffd23f;background:#ff8a1f;color:#1b0f02;font:800 13px/1.1 system-ui,sans-serif;letter-spacing:.2px;cursor:pointer;touch-action:manipulation;box-shadow:0 2px 0 #7a3a00,0 0 12px rgba(255,140,40,.55)}
+.openBtn{margin-top:0}
+#rotTip2:active,.openBtn:active{transform:translateY(1px);box-shadow:0 1px 0 #7a3a00}
+#iabTip{padding:5px 6px 5px 6px;gap:4px;cursor:default}
+#iabX{padding:6px 8px;margin-left:2px;color:#e8ecf8;opacity:.85;cursor:pointer}
+#toast{position:fixed;left:50%;top:48%;transform:translateX(-50%);z-index:20;display:none;max-width:90vw;padding:10px 16px;border-radius:12px;background:rgba(10,12,24,.92);border:1px solid #ffd23f;color:#fff;font:700 14px/1.3 system-ui,sans-serif;text-align:center;pointer-events:none}
+#toast.show{display:block}
 #bFull{display:none}
 #bFull.on{display:flex}
 
@@ -64,8 +70,9 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 </div>
 <button class="pill" id="fsBanner" type="button">&#x26F6; Tap for fullscreen</button>
 <button class="pill" id="installBtn" type="button">&#x2B07; Install app</button>
-<div id="rotTip"><div>&#x21BB; Rotate your phone for best play</div><div id="rotTip2">&#x22EE; &#x2192; Open in browser for fullscreen</div></div>
-<div class="pill" id="iabTip" role="note"><span id="iabTxt">For fullscreen, tap &#x22EE; &#x2192; Open in browser</span><b aria-label="Dismiss" style="margin-left:6px;opacity:.85">&#x2715;</b></div>
+<div id="rotTip"><div>&#x21BB; Rotate your phone for best play</div><button id="rotTip2" type="button">&#x1F310; Open in Chrome for fullscreen</button></div>
+<div class="pill" id="iabTip" role="note"><button id="iabOpen" class="openBtn" type="button">&#x1F310; Open in Chrome for fullscreen</button><b id="iabX" aria-label="Dismiss">&#x2715;</b></div>
+<div id="toast" role="status"></div>
 <div id="audioHint">🔊 Tap / press any key to enable sound</div>
 <div id="touch">
  <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#9664; &#9654; move &middot; tap anywhere on screen to jump &middot; hold = higher<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
@@ -975,7 +982,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v15b-portrait-play';
+const BUILD_TAG='v16-open-browser';
 let fsFailed=false,lockFailed=false;
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{lockFailed=true;rotImpossible();});}else{lockFailed=true;rotImpossible();}}catch(e){lockFailed=true;rotImpossible();}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
@@ -1008,7 +1015,7 @@ function inGameplay(){return G.state==='play'||G.state==='blastar'||G.state==='d
 function rotCardAllowed(){return false;}
 function rotImpossible(){if(G.rotPause&&!rotCardAllowed()){clearRotPause();G.paused=false;applyPauseAudio(false);}try{syncUI(true);}catch(e){}}
 function updateRotate(){const pt=isTouchDevice()&&isPortraitNow();document.body.classList.toggle('portraitTouch',pt);
- {const rt=document.getElementById('rotTip');if(rt){const show=pt&&inGameplay()&&!G.paused;rt.classList.toggle('show',show);if(show){const r=cv.getBoundingClientRect();rt.style.top=Math.round(r.bottom+10)+'px';rt.style.left='50%';rt.style.transform='translateX(-50%)';const l2=document.getElementById('rotTip2');if(l2)l2.style.display=IN_APP?'block':'none';}}}
+ {const rt=document.getElementById('rotTip');if(rt){const show=pt&&inGameplay()&&!G.paused;rt.classList.toggle('show',show);if(show){const r=cv.getBoundingClientRect();rt.style.top=Math.round(r.bottom+10)+'px';rt.style.left='50%';rt.style.transform='translateX(-50%)';const l2=document.getElementById('rotTip2');if(l2)l2.style.display=IN_APP?'inline-block':'none';}}}
  if(!pt){G.rotDismissed=false;if(G.rotPause){G.rotPause=false;G.paused=false;applyPauseAudio(false);}return;}
  if(inGameplay()&&!G.paused&&!G.rotDismissed&&rotCardAllowed()){G.paused=true;G.rotPause=true;G.pauseSel=0;for(const k in keys)keys[k]=false;if(typeof tp!=='undefined'){tp.clear();updTouch();}applyPauseAudio(true);}}
 function markFsSeen(){try{sessionStorage.setItem('elonFsBanner','1');}catch(e){}}
@@ -1228,9 +1235,20 @@ wireTopBtn('bPause',()=>{if(G.paused){clearRotPause();G.paused=false;SFX.pause()
 wireTopBtn('bMute',()=>toggleMute());
 wireTopBtn('bFull',()=>{});
 {const bf=document.getElementById('bFull');bf.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleFullscreen();},true);}
-{const l2=document.getElementById('rotTip2');if(l2)l2.textContent=IN_APP_IOS?'\u2022\u2022\u2022 \u2192 Open in Safari for fullscreen':'\u22EE \u2192 Open in browser for fullscreen';}
-{const it=document.getElementById('iabTip');if(it){const tx=document.getElementById('iabTxt');if(tx)tx.textContent=IN_APP_IOS?'For fullscreen, tap \u2022\u2022\u2022 \u2192 Open in Safari':'For fullscreen, tap \u22EE \u2192 Open in browser';
- const hide=e=>{e.preventDefault();e.stopPropagation();store.set('elonIabTip','x');it.classList.remove('show');};it.addEventListener('pointerdown',hide);it.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();});}}
+// v16: real 'open in the phone's browser' button for in-app browsers (X / Facebook / Instagram WebViews)
+const OPEN_LABEL='\uD83C\uDF10 Open in '+(IN_APP_IOS?'Safari':'Chrome')+' for fullscreen';
+let lastNav=null,navTries=[];
+function navTo(u){lastNav=u;navTries.push(u);if(window.__noNav)return;/* test hook: desktop test browsers cannot launch intent:// */try{location.href=u;}catch(e){}}
+function showToast(msg,ms){const el=document.getElementById('toast');if(!el)return;el.textContent=msg;el.classList.add('show');clearTimeout(showToast._t);showToast._t=setTimeout(()=>el.classList.remove('show'),ms||4500);}
+function openInBrowser(){const host='blastar.si',fb=encodeURIComponent('https://'+host+'/');let left=false;const onHide=()=>{if(document.visibilityState==='hidden')left=true;};document.addEventListener('visibilitychange',onHide);
+ if(IN_APP_IOS){navTo('x-safari-https://'+host+'/');}
+ else{navTo('intent://'+host+'/#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+fb+';end');
+  setTimeout(()=>{if(!left&&document.visibilityState==='visible')navTo('intent://'+host+'/#Intent;scheme=https;S.browser_fallback_url='+fb+';end');},700);}
+ setTimeout(()=>{document.removeEventListener('visibilitychange',onHide);if(!left&&document.visibilityState==='visible')showToast(IN_APP_IOS?'Tap \u2022\u2022\u2022 or the share icon, then Open in Safari':'Tap the 3 dots at top-right, then Open in browser');},1500);}
+function wireOpenBtn(el){if(!el)return;el.textContent=OPEN_LABEL;el.addEventListener('pointerdown',e=>{e.stopPropagation();});el.addEventListener('pointerup',e=>{e.stopPropagation();});el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openInBrowser();});}
+wireOpenBtn(document.getElementById('rotTip2'));wireOpenBtn(document.getElementById('iabOpen'));
+{const it=document.getElementById('iabTip');if(it){const x=document.getElementById('iabX');it.addEventListener('pointerdown',e=>{e.stopPropagation();});it.addEventListener('click',e=>{e.stopPropagation();});
+ if(x){const hide=e=>{e.preventDefault();e.stopPropagation();store.set('elonIabTip','x');it.classList.remove('show');};x.addEventListener('pointerdown',hide);}}}
 {const fb=document.getElementById('fsBanner');fb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();});fb.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();markFsSeen();requestFS();syncUI(true);});}
 {const ib=document.getElementById('installBtn');ib.addEventListener('pointerdown',e=>{e.stopPropagation();});ib.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const d=deferredInstall;if(!d)return;try{d.prompt();const uc=d.userChoice;if(uc&&uc.then)uc.then(()=>{deferredInstall=null;syncUI(true);}).catch(()=>{});}catch(_){}});}
 wireTopBtn('bHome',()=>{if(G.state==='title')openStageSelect();else goHome();});
@@ -1300,7 +1318,7 @@ const ELON_ART=new Image();let ELON_ART_OK=false;
 ELON_ART.onload=()=>{ELON_ART_OK=true;};ELON_ART.onerror=()=>{ELON_ART_OK=false;};
 ELON_ART.src=ELON_ART_URI;
 
-window.__elon={get inputMode(){return inputMode;},get fsFailed(){return fsFailed;},get lockFailed(){return lockFailed;},rotCardAllowed,IN_APP,MOBILE_UA,get isTouch(){return isTouch;},G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;},ctrlHintLines,TAP_HINT,doExit,leaveExit,exitRect};
+window.__elon={get lastNav(){return lastNav;},get navTries(){return navTries;},openInBrowser,get fsFailed(){return fsFailed;},get lockFailed(){return lockFailed;},rotCardAllowed,IN_APP,MOBILE_UA,get isTouch(){return isTouch;},G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;},ctrlHintLines,TAP_HINT,doExit,leaveExit,exitRect};
 })();
 
 </script></body></html>
