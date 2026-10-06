@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
+<meta name="screen-orientation" content="landscape">
+<meta name="x5-orientation" content="landscape">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="mobile-web-app-capable" content="yes">
 <title>ELON: Road to Mars</title>
 <style>
@@ -28,6 +32,18 @@ html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;touch-
 #hint b{color:#ffd23f;font-size:16px;letter-spacing:2px}
 #audioHint{position:absolute;left:50%;transform:translateX(-50%);bottom:18%;z-index:8;background:rgba(0,0,0,.72);border:2px solid #ffd23f;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;pointer-events:none;display:none;text-align:center;max-width:90%}
 #audioHint.show{display:block}
+#rotate{position:fixed;left:0;top:0;right:0;bottom:0;z-index:30;background:#05060e;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;font-weight:700;touch-action:none;padding:20px}
+#rotate.show{display:flex}
+#rotate .ph{width:64px;height:104px;border:5px solid #ffd23f;border-radius:12px;position:relative;animation:rotph 2.2s ease-in-out infinite}
+#rotate .ph:before{content:'';position:absolute;left:50%;top:6px;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:#ffd23f}
+#rotate .ph:after{content:'';position:absolute;left:50%;bottom:6px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#ffd23f}
+@keyframes rotph{0%,15%{transform:rotate(0)}45%,75%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+#rotate p{font-size:22px;margin:34px 0 8px;color:#ffd23f;letter-spacing:1px}
+#rotate small{font-size:14px;opacity:.75;font-weight:500}
+body.landTouch #audioHint{bottom:12px;top:auto;font-size:13px;padding:7px 12px;max-width:min(56%,420px)}
+#bFull{display:none}
+#bFull.on{display:flex}
+
 </style>
 </head>
 <body>
@@ -35,9 +51,11 @@ html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;touch-
 <div id="topbtns">
  <button class="sbtn" id="bHome" aria-label="Home" title="Home">⌂</button>
  <button class="sbtn" id="bMute" aria-label="Toggle sound" title="Sound on/off (M)"><svg viewBox="0 0 20 20"><polygon points="2,7 6,7 11,3 11,17 6,13 2,13" stroke="none"/><path id="mwave" d="M13.5 7.5 Q15.5 10 13.5 12.5 M15.5 5.5 Q19 10 15.5 14.5" fill="none" stroke-width="1.6"/><path id="mx" d="M13 7 L18 13 M18 7 L13 13" fill="none" stroke-width="2" style="display:none"/></svg></button>
+ <button class="sbtn" id="bFull" aria-label="Fullscreen" title="Fullscreen"><svg viewBox="0 0 20 20"><path d="M2 7V2h5M13 2h5v5M18 13v5h-5M7 18H2v-5" fill="none" stroke-width="2.2"/></svg></button>
  <button class="sbtn" id="bPause" aria-label="Pause"><svg viewBox="0 0 20 20"><rect x="4" y="3" width="4" height="14" stroke="none"/><rect x="12" y="3" width="4" height="14" stroke="none"/></svg></button>
  <span id="sndInd" aria-hidden="true">🔊</span>
 </div>
+<div id="rotate" role="dialog" aria-label="Rotate your phone"><div class="ph"></div><p>Rotate your phone to play</p><small>Landscape works best &middot; tap to go fullscreen</small></div>
 <div id="audioHint">🔊 Tap / press any key to enable sound</div>
 <div id="touch">
  <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#8592; &#8594; move &middot; JUMP (hold = higher)<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
@@ -808,7 +826,7 @@ function drawTitle(){const t=G.t;drawBG('starbase',t*6,t);drawGround('starbase',
  drawTextOutline('ROAD TO MARS',VW/2,16+sc*7+6,'#ff7a45',2,'#3a1d00');
  drawText(isTouch?'TAP TO START':'CLICK OR PRESS SPACE',VW/2,108,(Math.floor(t*2.2)%2===0)?'#ffffff':'#ffd23f',1,'center','#1c1a24');
  drawText(isTouch?'BUTTONS: MOVE + JUMP':'ARROWS/WASD + SPACE  ·  MOUSE OK',VW/2,124,'#1c2a50',1,'center',null);
- drawText('ENTER: STAGE SELECT   M: SOUND',VW/2,138,'#55607a',1,'center',null);
+ if(!isTouch)drawText('ENTER: STAGE SELECT   M: SOUND',VW/2,138,'#55607a',1,'center',null);
  drawText('HI '+pad(G.hi,6),6,6,'#ffffff',1,'left','#1c1a24');
  drawText('AN ORIGINAL PARODY GAME',VW/2,230,'#5a4632',1,'center',null);
  if(audioHint&&!unlocked){const ah=document.getElementById('audioHint');if(ah)ah.classList.add('show');}}
@@ -928,7 +946,28 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-function goFullscreen(){try{const el=document.documentElement;if(isTouch&&!document.fullscreenElement&&el.requestFullscreen){const p=el.requestFullscreen({navigationUI:'hide'});if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
+const BUILD_TAG='v5-landscape-mobile';
+function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
+function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
+function fsSupported(){const el=document.documentElement;return !!(el.requestFullscreen||el.webkitRequestFullscreen);}
+function enterFullscreen(){try{const el=document.documentElement;if(fsElement()){lockLandscape();return;}
+  const req=el.requestFullscreen||el.webkitRequestFullscreen;if(!req){lockLandscape();return;}
+  const p=req.call(el,{navigationUI:'hide'});
+  if(p&&p.then)p.then(()=>{lockLandscape();setTimeout(layout,120);}).catch(()=>{});else{lockLandscape();setTimeout(layout,120);}
+ }catch(e){}}
+function exitFullscreen(){try{const ex=document.exitFullscreen||document.webkitExitFullscreen;if(ex&&fsElement()){const p=ex.call(document);if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
+function toggleFullscreen(){if(fsElement())exitFullscreen();else enterFullscreen();}
+let fsTried=false;
+function goFullscreen(){if(!isTouchDevice())return;fsTried=true;enterFullscreen();}
+const mqPortrait=window.matchMedia?matchMedia('(orientation: portrait)'):null;
+const mqCoarse=window.matchMedia?matchMedia('(pointer: coarse)'):null;
+function isTouchDevice(){return isTouchCapability&&inputMode!=='mouse'&&(!mqCoarse||mqCoarse.matches||inputMode==='touch');}
+let rotateBlock=false;
+function updateRotate(){const el=document.getElementById('rotate');const want=isTouchDevice()&&(mqPortrait?mqPortrait.matches:window.innerHeight>window.innerWidth);
+ if(want===rotateBlock){if(el)el.classList.toggle('show',want);return;}
+ rotateBlock=want;if(el)el.classList.toggle('show',want);
+ if(want){for(const k in keys)keys[k]=false;if(typeof tp!=='undefined'){tp.clear();updTouch();}applyPauseAudio(true);}
+ else{if(!G.paused)applyPauseAudio(false);last=performance.now();acc=0;}}
 function menuPress(fromTouch){initAudio();SFX.blip();
  if(G.paused){confirmPause();return true;}
  if(G.state==='title'){if(fromTouch)goFullscreen();openStageSelect();return true;}
@@ -949,6 +988,9 @@ function togglePause(){if(G.state==='play'||G.state==='clear'||G.state==='dying'
 
 const JUMPK=['Space','ArrowUp','KeyW','KeyZ','KeyK'];
 ['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,()=>unlockAudio(),{passive:true,capture:true}));
+window.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!fsTried&&isTouchDevice()){goFullscreen();}else if(e.pointerType==='touch'&&rotateBlock){enterFullscreen();}},{capture:true});
+document.addEventListener('fullscreenchange',()=>{layout();setTimeout(layout,150);});document.addEventListener('webkitfullscreenchange',()=>{layout();setTimeout(layout,150);});
+if(mqPortrait&&mqPortrait.addEventListener)mqPortrait.addEventListener('change',()=>layout());
 window.addEventListener('keydown',e=>{
  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
  if(JUMPK.includes(e.code)&&!e.repeat&&!keys[e.code])pressJump(false);keys[e.code]=true;
@@ -1045,6 +1087,7 @@ function wireTopBtn(id,fn){
 }
 wireTopBtn('bPause',()=>{if(G.paused){G.paused=false;SFX.pause();applyPauseAudio(false);layout();}else togglePause();});
 wireTopBtn('bMute',()=>toggleMute());
+wireTopBtn('bFull',()=>toggleFullscreen());
 wireTopBtn('bHome',()=>{if(G.state==='title')openStageSelect();else goHome();});
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
@@ -1057,8 +1100,10 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
  else{VW=clamp(Math.round(VH*W/H/2)*2,256,480);dh=H;dw=Math.round(H*VW/VH);if(dw>W){dw=W;dh=Math.round(W*VH/VW);}dx=Math.round((W-dw)/2);dy=Math.round((H-dh)/2);}
  if(cv.width!==VW)cv.width=VW;if(cv.height!==VH)cv.height=VH;ctx.imageSmoothingEnabled=false;for(const k in SKY)delete SKY[k];
  Object.assign(cv.style,{width:dw+'px',height:dh+'px',left:dx+'px',top:dy+'px'});
- const scale=dw/VW;tbtns.style.left=(dx+dw-120)+'px';tbtns.style.top=(dy+6)+'px';G.hudR=Math.ceil(110/scale)+8;
+ const scale=dw/VW;const bF=document.getElementById('bFull');if(bF)bF.classList.toggle('on',isTouchDevice()&&fsSupported());
+ const tw=tbtns.offsetWidth||160;const tl=Math.max(dx+4,Math.min(W-tw-6,dx+dw-tw-6));tbtns.style.left=tl+'px';tbtns.style.top=(dy+6)+'px';G.hudR=Math.ceil((dx+dw-tl+8)/scale)+4;
  touchEl.classList.toggle('on',inputMode==='touch');touchEl.classList.toggle('land',!portrait);
+ document.body.classList.toggle('landTouch',!portrait&&inputMode==='touch');
  const blast=G.state==='blastar';
  if(tF)tF.style.display=blast?'flex':'none';
  if(portrait){const area=H-(dy+dh),bs=Math.round(clamp(W*.22,68,100)),js=Math.round(bs*1.25),bottom=Math.round(clamp(area*.12,16,70));
@@ -1067,18 +1112,20 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   Object.assign(tJ.style,{right:blast?'90px':'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
   if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
   hint.style.display=area>bs+js+50&&G.state==='title'?'block':'none';hint.style.top=(dy+dh+Math.round(area*.1))+'px';}
- else{const bs=Math.round(clamp(H*.18,54,84)),js=Math.round(bs*1.15);
-  Object.assign(dpad.style,{left:Math.max(10,dx+6)+'px',bottom:'12px',width:(bs*2+10)+'px',height:bs+'px',top:'auto'});
-  Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+10)+'px',width:bs+'px',height:bs+'px'});
-  Object.assign(tJ.style,{right:Math.max(12,W-dx-dw+8)+(blast?70:0)+'px',bottom:'12px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
-  if(tF)Object.assign(tF.style,{right:Math.max(12,W-dx-dw+8)+'px',bottom:'12px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
+ else{const bs=Math.round(clamp(H*.2,64,80)),js=Math.round(clamp(bs*1.08,70,86)),gap=10,bot=Math.round(clamp(H*.035,10,18));
+  const lx=Math.max(8,dx+8),rx=Math.max(8,W-dx-dw+8);
+  Object.assign(dpad.style,{left:lx+'px',bottom:bot+'px',width:(bs*2+gap)+'px',height:bs+'px',top:'auto'});
+  Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+gap)+'px',width:bs+'px',height:bs+'px'});
+  Object.assign(tJ.style,{right:(rx+(blast?js+gap:0))+'px',bottom:bot+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
+  if(tF)Object.assign(tF.style,{right:rx+'px',bottom:bot+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
+ updateRotate();
  if(LV&&cam)cam.x=cam.px=clamp(cam.x,0,LV.W*16-VW);}
 window.addEventListener('resize',layout);window.addEventListener('orientationchange',()=>setTimeout(layout,120));layout();
 
 // ===== MAIN =====
 let last=performance.now(),acc=0;
-function frame(now){let dt=(now-last)/1000;last=now;if(dt>.1)dt=.1;if(dt<0)dt=0;acc+=dt;let n=0;while(acc>=STEP&&n<12){update(STEP);acc-=STEP;n++;}if(n>=12)acc=0;render(acc/STEP);requestAnimationFrame(frame);}
+function frame(now){let dt=(now-last)/1000;last=now;if(dt>.1)dt=.1;if(dt<0)dt=0;if(rotateBlock){acc=0;render(0);requestAnimationFrame(frame);return;}acc+=dt;let n=0;while(acc>=STEP&&n<12){update(STEP);acc-=STEP;n++;}if(n>=12)acc=0;render(acc/STEP);requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 
 // Portrait image
@@ -1086,7 +1133,7 @@ const ELON_ART=new Image();let ELON_ART_OK=false;
 ELON_ART.onload=()=>{ELON_ART_OK=true;};ELON_ART.onerror=()=>{ELON_ART_OK=false;};
 ELON_ART.src=ELON_ART_URI;
 
-window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;}};
+window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout};
 })();
 
 </script></body></html>
