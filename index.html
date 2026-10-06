@@ -9,10 +9,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>(function(){try{if(/^https?:$/.test(location.protocol)){var d=document,l=d.createElement('link');l.rel='manifest';l.href='manifest.webmanifest';d.head.appendChild(l);var i=d.createElement('link');i.rel='icon';i.type='image/png';i.href='icons/icon-192.png';d.head.appendChild(i);}}catch(e){}})();</script>
 <title>ELON: Road to Mars</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+html,body{margin:0;width:100%;height:100%;height:100dvh;background:#000;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 #game{position:absolute;left:0;top:0;image-rendering:crisp-edges;image-rendering:pixelated;touch-action:none;outline:none}
 #topbtns{position:absolute;display:flex;gap:6px;z-index:6;align-items:center}
 .sbtn{width:36px;height:36px;border-radius:9px;border:2px solid rgba(255,255,255,.5);background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;touch-action:none;color:#fff;font-size:16px}
@@ -32,15 +34,11 @@ html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden;touch-
 #hint b{color:#ffd23f;font-size:16px;letter-spacing:2px}
 #audioHint{position:absolute;left:50%;transform:translateX(-50%);bottom:18%;z-index:8;background:rgba(0,0,0,.72);border:2px solid #ffd23f;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;pointer-events:none;display:none;text-align:center;max-width:90%}
 #audioHint.show{display:block}
-#rotate{position:fixed;left:0;top:0;right:0;bottom:0;z-index:30;background:#05060e;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;font-weight:700;touch-action:none;padding:20px}
-#rotate.show{display:flex}
-#rotate .ph{width:64px;height:104px;border:5px solid #ffd23f;border-radius:12px;position:relative;animation:rotph 2.2s ease-in-out infinite}
-#rotate .ph:before{content:'';position:absolute;left:50%;top:6px;width:18px;height:3px;margin-left:-9px;border-radius:2px;background:#ffd23f}
-#rotate .ph:after{content:'';position:absolute;left:50%;bottom:6px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#ffd23f}
-@keyframes rotph{0%,15%{transform:rotate(0)}45%,75%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
-#rotate p{font-size:22px;margin:34px 0 8px;color:#ffd23f;letter-spacing:1px}
-#rotate small{font-size:14px;opacity:.75;font-weight:500}
 body.landTouch #audioHint{bottom:12px;top:auto;font-size:13px;padding:7px 12px;max-width:min(56%,420px)}
+body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070a16 60%,#000 100%)}
+.pill{position:absolute;z-index:9;display:none;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:2px solid #ffd23f;background:rgba(20,12,4,.82);color:#ffd23f;font:700 14px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px;cursor:pointer;touch-action:manipulation;box-shadow:0 0 0 2px #3a1d00,0 0 14px rgba(255,140,40,.55)}
+.pill.show{display:flex}
+#installBtn{border-color:#7fe7ff;color:#7fe7ff;box-shadow:0 0 0 2px #0a2a33,0 0 12px rgba(127,231,255,.45)}
 #bFull{display:none}
 #bFull.on{display:flex}
 
@@ -55,7 +53,8 @@ body.landTouch #audioHint{bottom:12px;top:auto;font-size:13px;padding:7px 12px;m
  <button class="sbtn" id="bPause" aria-label="Pause"><svg viewBox="0 0 20 20"><rect x="4" y="3" width="4" height="14" stroke="none"/><rect x="12" y="3" width="4" height="14" stroke="none"/></svg></button>
  <span id="sndInd" aria-hidden="true">🔊</span>
 </div>
-<div id="rotate" role="dialog" aria-label="Rotate your phone"><div class="ph"></div><p>Rotate your phone to play</p><small>Landscape works best &middot; tap to go fullscreen</small></div>
+<button class="pill" id="fsBanner" type="button">&#x26F6; Tap for fullscreen</button>
+<button class="pill" id="installBtn" type="button">&#x2B07; Install app</button>
 <div id="audioHint">🔊 Tap / press any key to enable sound</div>
 <div id="touch">
  <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#8592; &#8594; move &middot; JUMP (hold = higher)<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
@@ -801,6 +800,7 @@ function drawHUD(){const right=VW-Math.max(G.hudR,100),cw=(right-6)/3,y1=4,y2=14
  drawText('S'+(G.level+1),right-22,y1,'#7fe7ff',1,'left',null);}
 
 function drawPauseMenu(){
+  if(G.rotPause){drawRotateCard();return;}
   ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,VW,VH);
   drawTextOutline('PAUSED',VW/2,40,'#ffd23f',3,'#3a1d00');
   const opts=['RESUME','RESTART STAGE','HOME'];
@@ -813,7 +813,7 @@ function drawElonPortrait(x,y,h){const img=(typeof ELON_ART_OK!=='undefined'&&EL
 
 function drawTitle(){const t=G.t;drawBG('starbase',t*6,t);drawGround('starbase',192);
  const T={x:VW-62,gy:192,booster:true};T.shipX=T.x+22;T.shipTop=192-20-136;T.doorY=T.shipTop+30;T.towerTop=T.shipTop-6;T.armY=192-20-64;drawLaunch(T,0,null);
- const faceY=50+Math.round(Math.sin(t*2.2)*2);drawElonPortrait(VW*.02,faceY,Math.round(VH*.55));
+ const portT=isTouch&&VW<300;const faceY=(portT?92:50)+Math.round(Math.sin(t*2.2)*2);drawElonPortrait(VW*.02,faceY,Math.round(VH*(portT?.40:.55)));
  const ex=Math.round(VW*.30);const fr=(t%3.2)<.13?'blink':'idle';
  ctx.drawImage(EL[fr],ex-12,192-32);
  ctx.drawImage(COIN[Math.floor(t*11)%10],ex+16,158+Math.round(Math.sin(t*3)*3));
@@ -824,8 +824,9 @@ function drawTitle(){const t=G.t;drawBG('starbase',t*6,t);drawGround('starbase',
  ctx.drawImage(SPAM[Math.floor(t*20)%2],Math.round(VW*.74+Math.sin(t*.8)*10),Math.round(86+Math.sin(t*2.3)*5));
  const sc=VW>=300?4:3;drawTextOutline('ELON',VW/2,16,'#ffd23f',sc,'#3a1d00','rgba(0,0,0,.35)');
  drawTextOutline('ROAD TO MARS',VW/2,16+sc*7+6,'#ff7a45',2,'#3a1d00');
- drawText(isTouch?'TAP TO START':'CLICK OR PRESS SPACE',VW/2,108,(Math.floor(t*2.2)%2===0)?'#ffffff':'#ffd23f',1,'center','#1c1a24');
- drawText(isTouch?'BUTTONS: MOVE + JUMP':'ARROWS/WASD + SPACE  ·  MOUSE OK',VW/2,124,'#1c2a50',1,'center',null);
+ if(isTouch)drawLaunchButton(t);
+ else{drawText('CLICK OR PRESS SPACE',VW/2,108,(Math.floor(t*2.2)%2===0)?'#ffffff':'#ffd23f',1,'center','#1c1a24');
+ drawText('ARROWS/WASD + SPACE  ·  MOUSE OK',VW/2,124,'#1c2a50',1,'center',null);}
  if(!isTouch)drawText('ENTER: STAGE SELECT   M: SOUND',VW/2,138,'#55607a',1,'center',null);
  drawText('HI '+pad(G.hi,6),6,6,'#ffffff',1,'left','#1c1a24');
  drawText('AN ORIGINAL PARODY GAME',VW/2,230,'#5a4632',1,'center',null);
@@ -946,28 +947,77 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v5-landscape-mobile';
+const BUILD_TAG='v6-pwa-launch';
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
+function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
 function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
 function fsSupported(){const el=document.documentElement;return !!(el.requestFullscreen||el.webkitRequestFullscreen);}
-function enterFullscreen(){try{const el=document.documentElement;if(fsElement()){lockLandscape();return;}
-  const req=el.requestFullscreen||el.webkitRequestFullscreen;if(!req){lockLandscape();return;}
-  const p=req.call(el,{navigationUI:'hide'});
-  if(p&&p.then)p.then(()=>{lockLandscape();setTimeout(layout,120);}).catch(()=>{});else{lockLandscape();setTimeout(layout,120);}
- }catch(e){}}
+const mqStandalone=window.matchMedia?[matchMedia('(display-mode: fullscreen)'),matchMedia('(display-mode: standalone)')]:[];
+function isStandalone(){return mqStandalone.some(m=>m.matches)||navigator.standalone===true;}
+let fsPending=false,fsAttempts=0;
+// MUST be called synchronously from a user-activation event (pointerup/touchend/click)
+function requestFS(){try{if(fsElement()){lockLandscape();return;}if(fsPending)return;const el=document.documentElement;const req=el.requestFullscreen||el.webkitRequestFullscreen;if(!req){lockLandscape();return;}
+  fsPending=true;fsAttempts++;const p=req.call(el,{navigationUI:'hide'});
+  if(p&&p.then)p.then(()=>{fsPending=false;lockLandscape();markFsSeen();layout();}).catch(()=>{fsPending=false;});else{fsPending=false;lockLandscape();}
+ }catch(e){fsPending=false;}}
 function exitFullscreen(){try{const ex=document.exitFullscreen||document.webkitExitFullscreen;if(ex&&fsElement()){const p=ex.call(document);if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
-function toggleFullscreen(){if(fsElement())exitFullscreen();else enterFullscreen();}
-let fsTried=false;
-function goFullscreen(){if(!isTouchDevice())return;fsTried=true;enterFullscreen();}
+function toggleFullscreen(){if(fsElement())exitFullscreen();else requestFS();}
+let fsUserExited=false;
+function gestureFS(e){if(e.pointerType&&e.pointerType!=='touch')return;if(!isTouchDevice()||isStandalone()||fsElement())return;if(e.target&&e.target.closest&&e.target.closest('#bFull'))return;requestFS();}
+function goFullscreen(){}
 const mqPortrait=window.matchMedia?matchMedia('(orientation: portrait)'):null;
 const mqCoarse=window.matchMedia?matchMedia('(pointer: coarse)'):null;
 function isTouchDevice(){return isTouchCapability&&inputMode!=='mouse'&&(!mqCoarse||mqCoarse.matches||inputMode==='touch');}
-let rotateBlock=false;
-function updateRotate(){const el=document.getElementById('rotate');const want=isTouchDevice()&&(mqPortrait?mqPortrait.matches:window.innerHeight>window.innerWidth);
- if(want===rotateBlock){if(el)el.classList.toggle('show',want);return;}
- rotateBlock=want;if(el)el.classList.toggle('show',want);
- if(want){for(const k in keys)keys[k]=false;if(typeof tp!=='undefined'){tp.clear();updTouch();}applyPauseAudio(true);}
- else{if(!G.paused)applyPauseAudio(false);last=performance.now();acc=0;}}
+function isPortraitNow(){return mqPortrait?mqPortrait.matches:window.innerHeight>window.innerWidth;}
+const rotateBlock=false; // v6: no blocking overlay any more
+function clearRotPause(){if(G.rotPause){G.rotPause=false;G.rotDismissed=true;}}
+function inGameplay(){return G.state==='play'||G.state==='blastar'||G.state==='dying'||(G.state==='clear'&&!(G.clr&&G.clr.menu));}
+function updateRotate(){const pt=isTouchDevice()&&isPortraitNow();document.body.classList.toggle('portraitTouch',pt);
+ if(!pt){G.rotDismissed=false;if(G.rotPause){G.rotPause=false;G.paused=false;applyPauseAudio(false);}return;}
+ if(inGameplay()&&!G.paused&&!G.rotDismissed){G.paused=true;G.rotPause=true;G.pauseSel=0;for(const k in keys)keys[k]=false;if(typeof tp!=='undefined'){tp.clear();updTouch();}applyPauseAudio(true);}}
+function markFsSeen(){try{sessionStorage.setItem('elonFsBanner','1');}catch(e){}}
+function fsSeen(){try{return sessionStorage.getItem('elonFsBanner')==='1';}catch(e){return false;}}
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;syncUI(true);});
+window.addEventListener('appinstalled',()=>{deferredInstall=null;syncUI(true);});
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
+// ---- launch button (drawn in-canvas, pixel style) ----
+function launchRect(){const port=VW<300;const w=port?150:176,h=port?40:44;return{x:Math.round(VW/2-w/2+(port?14:0)),y:port?84:86,w,h};}
+function drawLaunchButton(t){const r=launchRect(),x=r.x,y=r.y,w=r.w,h=r.h;const pulse=(Math.sin(t*4)+1)/2;
+ // pulsing orange glow that follows the rocket silhouette
+ {const nz=Math.round(h/2);ctx.save();ctx.shadowColor='rgba(255,138,42,'+(.55+.4*pulse).toFixed(2)+')';ctx.shadowBlur=8+10*pulse;ctx.fillStyle='#ff8a2a';
+  ctx.beginPath();ctx.moveTo(x-2,y-6);ctx.lineTo(x+w-nz,y-2);ctx.lineTo(x+w+2,y+h/2);ctx.lineTo(x+w-nz,y+h+2);ctx.lineTo(x-2,y+h+6);ctx.closePath();ctx.fill();ctx.fill();ctx.restore();}
+ // flames out of the tail (left)
+ const fl=14+Math.round(8*Math.abs(Math.sin(t*23))+5*Math.random());const cy=y+h/2;
+ for(let k=0;k<fl;k++){const a=1-k/fl;const hh=Math.max(2,Math.round((h-14)*a));ctx.fillStyle=k<fl*.35?'#fff6c8':(k<fl*.7?'#ffd23f':'#ff5a1f');if(Math.random()<.92)ctx.fillRect(x-6-k,Math.round(cy-hh/2+(Math.random()*2-1)),1,hh);}
+ // fins
+ ctx.fillStyle='#3a1d00';ctx.fillRect(x-2,y-6,14,h+12);ctx.fillStyle='#c0391b';ctx.fillRect(x,y-4,10,h+8);ctx.fillStyle='#e85a2a';ctx.fillRect(x,y-4,10,3);
+ // body outline + nose cone (right, stepped pixels)
+ const nose=Math.round(h/2);ctx.fillStyle='#3a1d00';ctx.fillRect(x+6,y-2,w-nose-6,h+4);
+ for(let i=0;i<nose+2;i++){const hh=Math.max(0,h+4-i*2);ctx.fillRect(x+w-nose+i,Math.round(y-2+i),1,hh);}
+ const top='#ffb347',mid='#ff8a2a',bot='#d9541a';
+ for(let row=0;row<h;row++){const k=row/h;ctx.fillStyle=k<.18?'#ffe0a0':(k<.45?top:(k<.8?mid:bot));ctx.fillRect(x+8,y+row,w-nose-8,1);const nl=Math.max(0,nose-Math.abs(row-h/2)*1-0);ctx.fillRect(x+w-nose,y+row,Math.max(0,Math.round(nose-Math.abs(row+.5-h/2))),1);}
+ // window porthole
+ const px=x+w-nose-14,py=Math.round(cy-6);ctx.fillStyle='#3a1d00';ctx.fillRect(px-1,py-1,14,14);ctx.fillStyle='#bfefff';ctx.fillRect(px+1,py+1,10,10);ctx.fillStyle='#ffffff';ctx.fillRect(px+2,py+2,4,3);
+ // play triangle + LAUNCH text
+ const tx=x+20;ctx.fillStyle='#3a1d00';for(let i=0;i<9;i++)ctx.fillRect(tx+i,Math.round(cy-9+i),1,18-i*2);ctx.fillStyle='#ffffff';for(let i=0;i<7;i++)ctx.fillRect(tx+1+i,Math.round(cy-7+i),1,14-i*2);
+ drawTextOutline('LAUNCH',x+18+(w-nose-26)/2+6,Math.round(cy-6),pulse>.5?'#ffffff':'#fff6c8',2,'#3a1d00');
+ // caption
+ const port=isPortraitNow();
+ if(port){drawRotIcon(Math.round(VW/2-58),y+h+9,t,1);drawText('PLAY FULLSCREEN',VW/2+8,y+h+10,'#ffd23f',1,'center','#1c1a24');
+  if(!canLockOrientation())drawText('TURN YOUR PHONE SIDEWAYS',VW/2,y+h+22,'#ffffff',1,'center','#1c1a24');}
+ else drawText((fsElement()||isStandalone())?'TAP TO PLAY':'TAP TO PLAY FULLSCREEN',VW/2,y+h+10,'#ffd23f',1,'center','#1c1a24');}
+function drawRotIcon(x,y,t,sc){const side=Math.floor(t*1.2)%2===1;ctx.fillStyle='#3a1d00';const W=side?14:9,H=side?9:14;ctx.fillRect(x-1,y-1,W+2,H+2);ctx.fillStyle='#ffd23f';ctx.fillRect(x,y,W,H);ctx.fillStyle='#16244a';ctx.fillRect(x+1,y+1,W-2,H-2);ctx.fillStyle='#ffd23f';if(side)ctx.fillRect(x+W-2,y+H/2-1,1,2);else ctx.fillRect(x+W/2-1,y+H-2,2,1);}
+function drawRotateCard(){ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(0,0,VW,VH);const w=Math.min(200,VW-24),h=74,x=Math.round(VW/2-w/2),y=64;
+ ctx.fillStyle='#3a1d00';ctx.fillRect(x-2,y-2,w+4,h+4);ctx.fillStyle='rgba(12,14,30,.94)';ctx.fillRect(x,y,w,h);ctx.fillStyle='#ffd23f';ctx.fillRect(x,y,w,2);ctx.fillRect(x,y+h-2,w,2);
+ drawRotIcon(x+12,y+14,G.t,1);drawText('PAUSED',x+34,y+12,'#ffd23f',1,'left',null);drawText('TURN SIDEWAYS',x+34,y+24,'#ffffff',1,'left',null);
+ drawText('TO KEEP PLAYING',x+34,y+34,'#ffffff',1,'left',null);drawText('TAP TO PLAY ANYWAY',VW/2,y+54,(Math.floor(G.t*2)%2)?'#7fe7ff':'#ffffff',1,'center',null);}
+// ---- per-frame UI sync (controls visibility, pills) ----
+let uiKey='';
+function controlsWanted(){if(G.paused)return false;return G.state==='play'||G.state==='blastar'||G.state==='dying'||G.state==='intro'||(G.state==='clear'&&!(G.clr&&G.clr.menu));}
+function syncUI(force){const menu=G.state==='title'||G.state==='stageselect'||G.state==='gameover'||G.state==='win';
+ const key=[G.state,G.paused?1:0,controlsWanted()?1:0,menu?1:0,inputMode,isPortraitNow()?1:0,fsElement()?1:0,deferredInstall?1:0].join('|');
+ if(!force&&key===uiKey){updateRotate();return;}uiKey=key;layout();}
 function menuPress(fromTouch){initAudio();SFX.blip();
  if(G.paused){confirmPause();return true;}
  if(G.state==='title'){if(fromTouch)goFullscreen();openStageSelect();return true;}
@@ -978,6 +1028,7 @@ function menuPress(fromTouch){initAudio();SFX.blip();
  if(G.state==='win'){if(G.stT>3){if(G.menuSel===0){openStageSelect();}else goHome();}return true;}
  return false;}
 function confirmPause(){
+  if(G.rotPause){clearRotPause();G.paused=false;applyPauseAudio(false);return;}
   const o=G.pauseSel;
   if(o===0){G.paused=false;SFX.pause();applyPauseAudio(false);}
   else if(o===1){G.paused=false;applyPauseAudio(false);G.cp=null;startLevel();}
@@ -988,8 +1039,8 @@ function togglePause(){if(G.state==='play'||G.state==='clear'||G.state==='dying'
 
 const JUMPK=['Space','ArrowUp','KeyW','KeyZ','KeyK'];
 ['pointerdown','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,()=>unlockAudio(),{passive:true,capture:true}));
-window.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!fsTried&&isTouchDevice()){goFullscreen();}else if(e.pointerType==='touch'&&rotateBlock){enterFullscreen();}},{capture:true});
-document.addEventListener('fullscreenchange',()=>{layout();setTimeout(layout,150);});document.addEventListener('webkitfullscreenchange',()=>{layout();setTimeout(layout,150);});
+for(const ev of['pointerup','touchend','click'])document.addEventListener(ev,gestureFS,{capture:true,passive:true});
+document.addEventListener('fullscreenchange',()=>{if(fsElement())markFsSeen();layout();setTimeout(layout,150);});document.addEventListener('webkitfullscreenchange',()=>{layout();setTimeout(layout,150);});
 if(mqPortrait&&mqPortrait.addEventListener)mqPortrait.addEventListener('change',()=>layout());
 window.addEventListener('keydown',e=>{
  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
@@ -1037,6 +1088,7 @@ function hitTestUI(sx,sy){
   if(G.state==='clear'&&G.clr&&G.clr.menu){const i=hitMenuRow(sx,sy,VW/2-90,VW/2+90,110,14,2);return i<0?null:{type:'clear',i};}
   if(G.state==='gameover'&&G.stT>1){const i=hitMenuRow(sx,sy,VW/2-90,VW/2+90,166,16,2);return i<0?null:{type:'gameover',i};}
   if(G.state==='win'&&G.stT>3){const i=hitMenuRow(sx,sy,VW/2-90,VW/2+90,204,14,2);return i<0?null:{type:'win',i};}
+  if(G.state==='title'&&isTouch){const r=launchRect();if(sx>=r.x-10&&sx<=r.x+r.w+6&&sy>=r.y-8&&sy<=r.y+r.h+8)return{type:'launch'};}
   if(G.state==='title'||G.state==='intro')return{type:'screen'};
   return null;
 }
@@ -1052,6 +1104,7 @@ function applyHover(sx,sy){
 }
 function handleCanvasPointer(e){
   e.preventDefault();initAudio();preferPointer(e.pointerType||'mouse');
+  if(G.rotPause){clearRotPause();G.paused=false;applyPauseAudio(false);SFX.select();return;}
   const {x:sx,y:sy}=canvasXY(e);
   const hit=applyHover(sx,sy);
   const touchLike=e.pointerType==='touch';
@@ -1085,9 +1138,12 @@ function wireTopBtn(id,fn){
   el.addEventListener('pointerdown',go);
   el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();}); // avoid double-fire after pointerdown
 }
-wireTopBtn('bPause',()=>{if(G.paused){G.paused=false;SFX.pause();applyPauseAudio(false);layout();}else togglePause();});
+wireTopBtn('bPause',()=>{if(G.paused){clearRotPause();G.paused=false;SFX.pause();applyPauseAudio(false);layout();}else togglePause();});
 wireTopBtn('bMute',()=>toggleMute());
-wireTopBtn('bFull',()=>toggleFullscreen());
+wireTopBtn('bFull',()=>{});
+{const bf=document.getElementById('bFull');bf.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleFullscreen();},true);}
+{const fb=document.getElementById('fsBanner');fb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();});fb.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();markFsSeen();requestFS();syncUI(true);});}
+{const ib=document.getElementById('installBtn');ib.addEventListener('pointerdown',e=>{e.stopPropagation();});ib.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const d=deferredInstall;if(!d)return;try{d.prompt();const uc=d.userChoice;if(uc&&uc.then)uc.then(()=>{deferredInstall=null;syncUI(true);}).catch(()=>{});}catch(_){}});}
 wireTopBtn('bHome',()=>{if(G.state==='title')openStageSelect();else goHome();});
 document.addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
@@ -1096,13 +1152,22 @@ syncMuteUI();
 // ===== LAYOUT =====
 const tbtns=document.getElementById('topbtns'),touchEl=document.getElementById('touch'),hint=document.getElementById('hint');
 function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.05;let dw,dh,dx,dy;
- if(portrait){VW=288;dw=W;dh=Math.round(W*VH/VW);if(dh>H*.58){dh=Math.round(H*.58);dw=Math.round(dh*VW/VH);}dx=Math.round((W-dw)/2);dy=isTouch?0:Math.round((H-dh)/2);}
- else{VW=clamp(Math.round(VH*W/H/2)*2,256,480);dh=H;dw=Math.round(H*VW/VH);if(dw>W){dw=W;dh=Math.round(W*VH/VW);}dx=Math.round((W-dw)/2);dy=Math.round((H-dh)/2);}
+ const menuSt=G.state==='title'||G.state==='stageselect'||G.state==='gameover'||G.state==='win';const td=isTouchDevice();
+ if(portrait){VW=288;dw=W;dh=Math.round(W*VH/VW);if(dh>H*.58){dh=Math.round(H*.58);dw=Math.round(dh*VW/VH);}dx=Math.round((W-dw)/2);dy=(isTouch&&!menuSt)?0:Math.round((H-dh)/2);if(isTouch&&menuSt)dy=Math.round((H-dh)*.42);}
+ else{const cap=td?600:480;const ideal=VH*W/H;VW=clamp(Math.round(ideal/2)*2,256,cap);dh=H;dw=Math.round(H*VW/VH);if(dw>W){dw=W;dh=Math.round(W*VH/VW);}
+  if(td&&ideal<=cap+2&&ideal>=254){dw=W;dh=H;} // fill whole screen: tiny (<0.5%) non-uniform stretch instead of black bars
+  dx=Math.round((W-dw)/2);dy=Math.round((H-dh)/2);}
  if(cv.width!==VW)cv.width=VW;if(cv.height!==VH)cv.height=VH;ctx.imageSmoothingEnabled=false;for(const k in SKY)delete SKY[k];
  Object.assign(cv.style,{width:dw+'px',height:dh+'px',left:dx+'px',top:dy+'px'});
- const scale=dw/VW;const bF=document.getElementById('bFull');if(bF)bF.classList.toggle('on',isTouchDevice()&&fsSupported());
+ const scale=dw/VW;const bF=document.getElementById('bFull');if(bF)bF.classList.toggle('on',td&&fsSupported()&&!isStandalone());
+ {const fb=document.getElementById('fsBanner'),ib=document.getElementById('installBtn');const showFs=td&&!portrait&&G.state==='title'&&!fsElement()&&!isStandalone()&&fsSupported()&&!fsSeen();fb.classList.toggle('show',showFs);
+  const showIn=td&&G.state==='title'&&!!deferredInstall&&!isStandalone();ib.classList.toggle('show',showIn);
+  if(showFs){fb.style.left='50%';fb.style.transform='translateX(-50%)';fb.style.top=(dy+Math.round(dh*.80))+'px';}
+  if(showIn){ib.style.left=(dx+10)+'px';ib.style.top=(dy+dh-46)+'px';if(portrait){ib.style.top=(dy+dh+14)+'px';}}
+  const ah=document.getElementById('audioHint');if(ah)ah.style.visibility=showFs?'hidden':'';}
  const tw=tbtns.offsetWidth||160;const tl=Math.max(dx+4,Math.min(W-tw-6,dx+dw-tw-6));tbtns.style.left=tl+'px';tbtns.style.top=(dy+6)+'px';G.hudR=Math.ceil((dx+dw-tl+8)/scale)+4;
- touchEl.classList.toggle('on',inputMode==='touch');touchEl.classList.toggle('land',!portrait);
+ if(portrait&&isTouch&&menuSt&&dy>=60){tbtns.style.top=(dy-52)+'px';G.hudR=4;} // portrait home: buttons sit above the picture, not over the logo
+ touchEl.classList.toggle('on',inputMode==='touch'&&controlsWanted());touchEl.classList.toggle('land',!portrait);
  document.body.classList.toggle('landTouch',!portrait&&inputMode==='touch');
  const blast=G.state==='blastar';
  if(tF)tF.style.display=blast?'flex':'none';
@@ -1111,13 +1176,13 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+12)+'px',width:bs+'px',height:bs+'px'});
   Object.assign(tJ.style,{right:blast?'90px':'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
   if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
-  hint.style.display=area>bs+js+50&&G.state==='title'?'block':'none';hint.style.top=(dy+dh+Math.round(area*.1))+'px';}
- else{const bs=Math.round(clamp(H*.2,64,80)),js=Math.round(clamp(bs*1.08,70,86)),gap=10,bot=Math.round(clamp(H*.035,10,18));
-  const lx=Math.max(8,dx+8),rx=Math.max(8,W-dx-dw+8);
+  hint.style.display='none';}
+ else{const bs=Math.round(clamp(H*.22,80,90)),js=Math.round(clamp(bs+4,84,92)),gap=14,bot=Math.round(Math.max(10,H*.25-bs/2));
+  const lx=Math.round(W*.12),rx=Math.round(W*.12);
   Object.assign(dpad.style,{left:lx+'px',bottom:bot+'px',width:(bs*2+gap)+'px',height:bs+'px',top:'auto'});
   Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+gap)+'px',width:bs+'px',height:bs+'px'});
-  Object.assign(tJ.style,{right:(rx+(blast?js+gap:0))+'px',bottom:bot+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
-  if(tF)Object.assign(tF.style,{right:rx+'px',bottom:bot+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
+  Object.assign(tJ.style,{right:(rx+(blast?js+gap:0))+'px',bottom:(bot+Math.round((bs-js)/2))+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
+  if(tF)Object.assign(tF.style,{right:rx+'px',bottom:(bot+Math.round((bs-js)/2))+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
  updateRotate();
  if(LV&&cam)cam.x=cam.px=clamp(cam.x,0,LV.W*16-VW);}
@@ -1125,7 +1190,7 @@ window.addEventListener('resize',layout);window.addEventListener('orientationcha
 
 // ===== MAIN =====
 let last=performance.now(),acc=0;
-function frame(now){let dt=(now-last)/1000;last=now;if(dt>.1)dt=.1;if(dt<0)dt=0;if(rotateBlock){acc=0;render(0);requestAnimationFrame(frame);return;}acc+=dt;let n=0;while(acc>=STEP&&n<12){update(STEP);acc-=STEP;n++;}if(n>=12)acc=0;render(acc/STEP);requestAnimationFrame(frame);}
+function frame(now){let dt=(now-last)/1000;last=now;if(dt>.1)dt=.1;if(dt<0)dt=0;syncUI();acc+=dt;let n=0;while(acc>=STEP&&n<12){update(STEP);acc-=STEP;n++;}if(n>=12)acc=0;render(acc/STEP);requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 
 // Portrait image
@@ -1133,7 +1198,7 @@ const ELON_ART=new Image();let ELON_ART_OK=false;
 ELON_ART.onload=()=>{ELON_ART_OK=true;};ELON_ART.onerror=()=>{ELON_ART_OK=false;};
 ELON_ART.src=ELON_ART_URI;
 
-window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout};
+window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;}};
 })();
 
 </script></body></html>
