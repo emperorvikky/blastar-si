@@ -27,7 +27,8 @@ html,body{margin:0;width:100%;height:100%;height:100dvh;background:#000;overflow
 .tbtn svg{width:40%;height:40%;fill:#fff}
 #dpad{position:absolute;pointer-events:auto;touch-action:none}
 #dpad .tbtn{pointer-events:none;top:0}
-#tJ,#tF,#tH{pointer-events:auto}
+#tF,#tH{pointer-events:auto}
+#tJ{display:none!important;pointer-events:none}
 #touch.land .tbtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.38)}
 #touch.land .tbtn.on{background:rgba(255,210,63,.45);border-color:#ffd23f}
 #tapLbl{position:absolute;text-align:center;font:700 12px/1.2 system-ui,sans-serif;color:rgba(255,255,255,.75);text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;letter-spacing:.3px}
@@ -58,7 +59,7 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 <button class="pill" id="installBtn" type="button">&#x2B07; Install app</button>
 <div id="audioHint">🔊 Tap / press any key to enable sound</div>
 <div id="touch">
- <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#9664; &#9654; move &middot; tap anywhere (or JUMP) to jump &middot; hold = higher<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
+ <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#9664; &#9654; move &middot; tap anywhere on screen to jump &middot; hold = higher<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
  <div id="dpad"><div class="tbtn" id="tL"><svg viewBox="0 0 10 10"><polygon points="7,1 2,5 7,9"/></svg></div><div class="tbtn" id="tR"><svg viewBox="0 0 10 10"><polygon points="3,1 8,5 3,9"/></svg></div></div>
  <div id="tapLbl">Tap screen = Jump</div>
  <div class="tbtn" id="tJ"><svg viewBox="0 0 10 10"><polygon points="1,7 5,2 9,7"/></svg><span>JUMP</span></div>
@@ -810,7 +811,7 @@ function drawPauseMenu(){
   const opts=['RESUME','RESTART STAGE','HOME','EXIT'];
   opts.forEach((o,i)=>{const sel=G.pauseSel===i;drawText((sel?'> ':'  ')+o,VW/2,90+i*18,sel?'#ffd23f':'#ffffff',1,'center');});
   drawText(LEVELS[G.level]?LEVELS[G.level].name:'',VW/2,170,'#aab4cc',1,'center');
-  drawText(inputMode==='touch'?(G.state==='blastar'?'TAP SCREEN = FIRE · ◀ ▶ = MOVE':'TAP SCREEN = JUMP · ◀ ▶ = MOVE'):'M: SOUND  ESC: BACK',VW/2,196,inputMode==='touch'?'#9aa6c4':'#55607a',1,'center');
+  drawText(inputMode==='touch'?(G.state==='blastar'?'TAP ANYWHERE ON SCREEN TO FIRE':'TAP ANYWHERE ON SCREEN TO JUMP'):'M: SOUND  ESC: BACK',VW/2,196,inputMode==='touch'?'#9aa6c4':'#55607a',1,'center');
 }
 function drawElonPortrait(x,y,h){const img=(typeof ELON_ART_OK!=='undefined'&&ELON_ART_OK)?ELON_ART:null;if(img){const fh=Math.max(8,h|0),fw=Math.round(fh*(img.width/img.height));ctx.drawImage(img,Math.round(x),Math.round(y),fw,fh);return{w:fw,h:fh};}
  ctx.drawImage(EL.idle,Math.round(x),Math.round(y),24,32);return{w:24,h:32};}
@@ -951,7 +952,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v11-tap-jump';
+const BUILD_TAG='v12-tap-anywhere';
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
 function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
@@ -1012,9 +1013,9 @@ function drawLaunchButton(t){const r=launchRect(),x=r.x,y=r.y,w=r.w,h=r.h;const 
   if(!canLockOrientation())drawText('TURN YOUR PHONE SIDEWAYS',VW/2,y+h+22,'#ffffff',1,'center','#1c1a24');
   drawHintPill(TAP_HINT,VW/2,y+h+(canLockOrientation()?27:37));}
  else{drawText((fsElement()||isStandalone())?'TAP TO PLAY':'TAP TO PLAY FULLSCREEN',VW/2,y+h+10,'#ffd23f',1,'center','#1c1a24');drawHintPill(TAP_HINT,VW/2,y+h+25);}}
-const TAP_HINT='TAP ANYWHERE TO JUMP · ◀ ▶ TO MOVE';
+const TAP_HINT='TAP ANYWHERE ON SCREEN TO JUMP';
 function drawHintPill(s,cx,y,col,alpha){const w=textW(s.toUpperCase(),1)+10;ctx.save();ctx.globalAlpha=alpha==null?1:alpha;ctx.fillStyle='rgba(10,12,28,.62)';ctx.fillRect(Math.round(cx-w/2),y-3,w,13);ctx.fillStyle='rgba(255,210,63,.55)';ctx.fillRect(Math.round(cx-w/2),y+9,w,1);drawText(s,cx,y,col||'#ffffff',1,'center','#1c1a24');ctx.restore();}
-function ctrlHintLines(){const blast=G.state==='blastar';if(inputMode==='touch')return blast?['TAP ANYWHERE TO FIRE','◀ ▶ TO MOVE']:['TAP ANYWHERE TO JUMP · HOLD = HIGHER','◀ ▶ BUTTONS TO MOVE'];
+function ctrlHintLines(){const blast=G.state==='blastar';if(inputMode==='touch')return blast?['TAP ANYWHERE ON SCREEN TO FIRE','◀ ▶ TO MOVE']:['TAP ANYWHERE ON SCREEN TO JUMP','◀ ▶ TO MOVE · HOLD = HIGHER JUMP'];
  return blast?['ARROWS MOVE · SPACE / X FIRE']:['ARROWS / A D MOVE · SPACE JUMP (HOLD = HIGHER)'];}
 function drawOverlayHints(){if(!(G.hintT>0)||G.paused||(G.state!=='play'&&G.state!=='blastar'))return;if(G.state==='blastar'&&BS&&BS.flash>0)return;
  ctx.setTransform(1,0,0,1,0,0);const a=Math.min(1,G.hintT/0.5);const L=ctrlHintLines();L.forEach((s,i)=>drawHintPill(s,VW/2,40+i*15,i===0?'#ffd23f':'#ffffff',a));}
@@ -1223,7 +1224,7 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   Object.assign(dpad.style,{left:'12px',bottom:bottom+'px',width:(bs*2+12)+'px',height:bs+'px',top:'auto'});
   {const l=document.getElementById('tapLbl');if(l)Object.assign(l.style,{left:'12px',width:(bs*2+12)+'px',bottom:(bottom+bs+6)+'px',top:'auto'});}
   Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+12)+'px',width:bs+'px',height:bs+'px'});
-  Object.assign(tJ.style,{right:blast?'90px':'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
+  tJ.style.display='none';
   if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
  else{const bs=Math.round(clamp(H*.22,80,90)),js=Math.round(clamp(bs+4,84,92)),gap=14;
@@ -1237,7 +1238,7 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   Object.assign(dpad.style,{left:lx+'px',top:topL+'px',width:(bs*2+gap)+'px',height:bs+'px',bottom:'auto'});
   {const l=document.getElementById('tapLbl');if(l)Object.assign(l.style,{left:lx+'px',width:(bs*2+gap)+'px',top:(topL+bs+6)+'px',bottom:'auto'});}
   Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+gap)+'px',width:bs+'px',height:bs+'px'});
-  Object.assign(tJ.style,{right:(rx+(blast?js+gap:0))+'px',top:topR+'px',width:js+'px',height:js+'px',left:'auto',bottom:'auto'});
+  tJ.style.display='none'; // v12: no JUMP button on mobile - tap anywhere on screen to jump
   if(tF)Object.assign(tF.style,{right:rx+'px',top:topR+'px',width:js+'px',height:js+'px',left:'auto',bottom:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
  updateRotate();
