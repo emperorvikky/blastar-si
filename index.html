@@ -27,6 +27,8 @@ html,body{margin:0;width:100%;height:100%;height:100dvh;background:#000;overflow
 .tbtn svg{width:40%;height:40%;fill:#fff}
 #dpad{position:absolute;pointer-events:auto;touch-action:none}
 #dpad .tbtn{pointer-events:none;top:0}
+#dpad .tbtn{border-radius:16px}
+#dpad .tbtn svg{width:56%;height:auto;max-height:30%}
 #tF,#tH{pointer-events:auto}
 #tJ{display:none!important;pointer-events:none}
 #touch.land .tbtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.38)}
@@ -42,6 +44,7 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 .pill{position:absolute;z-index:9;display:none;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:2px solid #ffd23f;background:rgba(20,12,4,.82);color:#ffd23f;font:700 14px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:1px;cursor:pointer;touch-action:manipulation;box-shadow:0 0 0 2px #3a1d00,0 0 14px rgba(255,140,40,.55)}
 .pill.show{display:flex}
 #installBtn{border-color:#7fe7ff;color:#7fe7ff;box-shadow:0 0 0 2px #0a2a33,0 0 12px rgba(127,231,255,.45)}
+#iabTip{border-color:#9aa6c4;color:#e8ecf8;background:rgba(10,12,24,.86);box-shadow:0 0 0 2px #10131f,0 0 10px rgba(0,0,0,.5);font:700 12px/1.2 system-ui,sans-serif;letter-spacing:.2px;padding:7px 12px;white-space:nowrap;max-width:94vw}
 #bFull{display:none}
 #bFull.on{display:flex}
 
@@ -58,6 +61,7 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 </div>
 <button class="pill" id="fsBanner" type="button">&#x26F6; Tap for fullscreen</button>
 <button class="pill" id="installBtn" type="button">&#x2B07; Install app</button>
+<div class="pill" id="iabTip" role="note"><span id="iabTxt">For fullscreen, tap &#x22EE; &#x2192; Open in browser</span><b aria-label="Dismiss" style="margin-left:6px;opacity:.85">&#x2715;</b></div>
 <div id="audioHint">🔊 Tap / press any key to enable sound</div>
 <div id="touch">
  <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#9664; &#9654; move &middot; tap anywhere on screen to jump &middot; hold = higher<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
@@ -82,13 +86,27 @@ function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15
 const hash=(x,y)=>{let n=Math.imul(x,73856093)^Math.imul(y,19349663);n=Math.imul(n^(n>>>13),1274126177);return (n^(n>>>16))>>>0;};
 const pad=(n,l)=>String(Math.max(0,Math.floor(n))).padStart(l,'0');
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
-const isTouchCapability=('ontouchstart' in window)||navigator.maxTouchPoints>0;
-let isTouch=isTouchCapability; // may flip false once a mouse is used so pads don't appear
+// v15: robust touch detection. ANY touch signal counts (in-app browsers / WebViews often report
+// pointer:fine, maxTouchPoints 0 or untyped pointer events), and the controls never depend on
+// fullscreen / orientation lock succeeding.
+const UA=navigator.userAgent||'';
+const IN_APP=/FBAN|FBAV|FB_IAB|FBIOS|Instagram|Twitter|TwitterAndroid|\bX-Android|Line\/|LinkedInApp|Snapchat|MicroMessenger|Pinterest|musical_ly|Bytedance|; ?wv\)/i.test(UA);
+const IN_APP_IOS=IN_APP&&/iPhone|iPad|iPod/i.test(UA);
+const MOBILE_UA=IN_APP||/Android|iPhone|iPad|iPod|Mobile|Silk|Kindle|Opera Mini/i.test(UA)||(navigator.userAgentData&&navigator.userAgentData.mobile===true);
+function mqm(q){try{return !!(window.matchMedia&&matchMedia(q).matches);}catch(e){return false;}}
+let sawTouch=false,lastTouchT=-1e9;
+function touchSignals(){return sawTouch||('ontouchstart' in window)||(navigator.maxTouchPoints|0)>0||(navigator.msMaxTouchPoints|0)>0||mqm('(pointer: coarse)')||mqm('(any-pointer: coarse)')||MOBILE_UA;}
+let isTouchCapability=touchSignals();
+let isTouch=isTouchCapability; // may flip false once a real mouse is used (desktop touchscreens)
 let inputMode=isTouchCapability?'touch':'mouse';
+function toTouchMode(){isTouchCapability=true;if(inputMode!=='touch'||!isTouch){inputMode='touch';isTouch=true;try{layout();}catch(e){}}}
 function preferPointer(type){
-  if(type==='mouse'||type==='pen'){if(inputMode!=='mouse'){inputMode='mouse';isTouch=false;layout();}}
-  else if(type==='touch'){if(inputMode!=='touch'){inputMode='touch';isTouch=isTouchCapability;layout();}}
+  if(type==='touch'){toTouchMode();return;}
+  // only a genuine mouse/pen switches to mouse mode: never on phones / in-app browsers, never right after a
+  // touch (compat mouse events), and an untyped pointer event ('' / undefined) is ignored
+  if((type==='mouse'||type==='pen')&&!MOBILE_UA&&performance.now()-lastTouchT>1000){if(inputMode!=='mouse'){inputMode='mouse';isTouch=false;try{layout();}catch(e){}}}
 }
+window.addEventListener('touchstart',()=>{sawTouch=true;lastTouchT=performance.now();if(inputMode!=='touch'||!isTouch)toTouchMode();},{passive:true,capture:true});
 const UNLOCK_KEY='elonRoadUnlocked';
 const CLEARED_KEY='elonRoadCleared';
 // Always all stages open; ignore/clear legacy unlock gate.
@@ -953,8 +971,9 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v14-gapfix';
-function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
+const BUILD_TAG='v15-inapp-touch';
+let fsFailed=false,lockFailed=false;
+function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{lockFailed=true;rotImpossible();});}else{lockFailed=true;rotImpossible();}}catch(e){lockFailed=true;rotImpossible();}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
 function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
 function fsSupported(){const el=document.documentElement;return !!(el.requestFullscreen||el.webkitRequestFullscreen);}
@@ -964,23 +983,28 @@ let fsPending=false,fsAttempts=0;
 // MUST be called synchronously from a user-activation event (pointerup/touchend/click)
 function requestFS(){try{if(fsElement()){lockLandscape();return;}if(fsPending)return;const el=document.documentElement;const req=el.requestFullscreen||el.webkitRequestFullscreen;if(!req){lockLandscape();return;}
   fsPending=true;fsAttempts++;const p=req.call(el,{navigationUI:'hide'});
-  if(p&&p.then)p.then(()=>{fsPending=false;lockLandscape();markFsSeen();layout();}).catch(()=>{fsPending=false;});else{fsPending=false;lockLandscape();}
- }catch(e){fsPending=false;}}
+  if(p&&p.then)p.then(()=>{fsPending=false;lockLandscape();markFsSeen();layout();}).catch(()=>{fsPending=false;fsFailed=true;rotImpossible();});else{fsPending=false;lockLandscape();}
+ }catch(e){fsPending=false;fsFailed=true;}}
 function exitFullscreen(){try{const ex=document.exitFullscreen||document.webkitExitFullscreen;if(ex&&fsElement()){const p=ex.call(document);if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 function toggleFullscreen(){if(fsElement())exitFullscreen();else requestFS();}
 let fsUserExited=false;
-function gestureFS(e){if(G.state==='exit')return;if(e.pointerType&&e.pointerType!=='touch')return;if(!isTouchDevice()||isStandalone()||fsElement())return;if(e.target&&e.target.closest&&e.target.closest('#bFull'))return;requestFS();}
+function gestureFS(e){if(G.state==='exit')return;if(e.pointerType&&e.pointerType!=='touch'&&!MOBILE_UA)return;if(IN_APP&&fsAttempts>=1)return;/* in-app WebViews: try once, never nag */if(!isTouchDevice()||isStandalone()||fsElement())return;if(e.target&&e.target.closest&&e.target.closest('#bFull'))return;requestFS();}
 function goFullscreen(){}
 const mqPortrait=window.matchMedia?matchMedia('(orientation: portrait)'):null;
 const mqCoarse=window.matchMedia?matchMedia('(pointer: coarse)'):null;
-function isTouchDevice(){return isTouchCapability&&inputMode!=='mouse'&&(!mqCoarse||mqCoarse.matches||inputMode==='touch');}
+function isTouchDevice(){return inputMode==='touch';}
 function isPortraitNow(){return mqPortrait?mqPortrait.matches:window.innerHeight>window.innerWidth;}
 const rotateBlock=false; // v6: no blocking overlay any more
 function clearRotPause(){if(G.rotPause){G.rotPause=false;G.rotDismissed=true;}}
 function inGameplay(){return G.state==='play'||G.state==='blastar'||G.state==='dying'||(G.state==='clear'&&!(G.clr&&G.clr.menu));}
+// v15: the 'rotate your phone' pause card only makes sense where the page can actually rotate. In in-app browsers
+// (X/Facebook/Instagram WebViews, often portrait-locked) or when fullscreen / orientation lock is missing or failed,
+// play straight away in portrait with the controls visible instead of pausing behind the card.
+function rotCardAllowed(){let lk=false;try{lk=!!(screen.orientation&&screen.orientation.lock);}catch(e){}return !IN_APP&&!fsFailed&&!lockFailed&&lk&&fsSupported();}
+function rotImpossible(){if(G.rotPause&&!rotCardAllowed()){clearRotPause();G.paused=false;applyPauseAudio(false);}try{syncUI(true);}catch(e){}}
 function updateRotate(){const pt=isTouchDevice()&&isPortraitNow();document.body.classList.toggle('portraitTouch',pt);
  if(!pt){G.rotDismissed=false;if(G.rotPause){G.rotPause=false;G.paused=false;applyPauseAudio(false);}return;}
- if(inGameplay()&&!G.paused&&!G.rotDismissed){G.paused=true;G.rotPause=true;G.pauseSel=0;for(const k in keys)keys[k]=false;if(typeof tp!=='undefined'){tp.clear();updTouch();}applyPauseAudio(true);}}
+ if(inGameplay()&&!G.paused&&!G.rotDismissed&&rotCardAllowed()){G.paused=true;G.rotPause=true;G.pauseSel=0;for(const k in keys)keys[k]=false;if(typeof tp!=='undefined'){tp.clear();updTouch();}applyPauseAudio(true);}}
 function markFsSeen(){try{sessionStorage.setItem('elonFsBanner','1');}catch(e){}}
 function fsSeen(){try{return sessionStorage.getItem('elonFsBanner')==='1';}catch(e){return false;}}
 let deferredInstall=null;
@@ -1107,7 +1131,7 @@ window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;tp.clear()
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(G.state==='play'||G.state==='blastar'){G.paused=true;applyPauseAudio(true);}if(AC)AC.suspend().catch(()=>{});}else if(AC&&G.state!=='exit')AC.resume().catch(()=>{});});
 
 const tp=new Map(),dpad=document.getElementById('dpad'),tL=document.getElementById('tL'),tR=document.getElementById('tR'),tJ=document.getElementById('tJ'),tF=document.getElementById('tF'),tH=document.getElementById('tH');
-function dpadDir(e){const r=dpad.getBoundingClientRect();const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(y<.35)return'U';if(y>.65)return'D';return x<.5?'L':'R';}
+function dpadDir(e){const r=dpad.getBoundingClientRect();const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if((G.state==='play'||G.state==='blastar')&&!G.paused)return x<.5?'L':'R';/* v15 tall bars: whole bar = move */if(y<.35)return'U';if(y>.65)return'D';return x<.5?'L':'R';}
 function updTouch(){const v=[...tp.values()];touch.l=v.includes('L');touch.r=v.includes('R');touch.u=v.includes('U');touch.d=v.includes('D');touch.j=v.includes('J');touch.f=v.includes('F');
  tL.classList.toggle('on',touch.l);tR.classList.toggle('on',touch.r);tJ.classList.toggle('on',touch.j);if(tF)tF.classList.toggle('on',touch.f);}
 dpad.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();preferPointer(e.pointerType||'touch');try{dpad.setPointerCapture(e.pointerId);}catch(_){}tp.set(e.pointerId,dpadDir(e));updTouch();if(G.state!=='play'&&G.state!=='blastar'||G.paused)menuPress(true);});
@@ -1149,11 +1173,11 @@ function applyHover(sx,sy){
   return hit;
 }
 function handleCanvasPointer(e){
-  e.preventDefault();initAudio();preferPointer(e.pointerType||'mouse');
+  e.preventDefault();initAudio();preferPointer(e.pointerType);
   if(G.rotPause){clearRotPause();G.paused=false;applyPauseAudio(false);SFX.select();return;}
   const {x:sx,y:sy}=canvasXY(e);
   const hit=applyHover(sx,sy);
-  const touchLike=e.pointerType==='touch';
+  const touchLike=e.pointerType==='touch'||(inputMode==='touch'&&e.pointerType!=='mouse')||(MOBILE_UA&&inputMode==='touch');
   if(G.state==='stageselect'){
     if(hit&&hit.type==='stage'){
       if(touchLike){G.stageSel=hit.i;SFX.select();startFromStage(hit.i);return;}
@@ -1174,17 +1198,23 @@ function handleCanvasPointer(e){
   if(G.state!=='play'&&G.state!=='blastar')menuPress(touchLike);
 }
 cv.addEventListener('pointerdown',handleCanvasPointer);
+// v15: 'tap anywhere on screen' also covers the empty area around the picture (portrait / letterbox bars)
+document.addEventListener('pointerdown',e=>{const tg=e.target;if(tg===cv||(tg&&tg.closest&&tg.closest('#topbtns,#dpad,#tF,#tJ,#tH,.pill,button,a')))return;
+ if(e.pointerType==='mouse'&&!MOBILE_UA)return;if(e.pointerType)preferPointer(e.pointerType);
+ if(G.rotPause){clearRotPause();G.paused=false;applyPauseAudio(false);return;}
+ if((G.state==='play'||G.state==='blastar')&&!G.paused&&inputMode==='touch'){e.preventDefault();initAudio();const k=G.state==='blastar'?'F':'J';tp.set(e.pointerId,k);updTouch();if(k==='J')pressJump(true);G.tapJumps=(G.tapJumps||0)+1;}},{passive:false});
+for(const ev of['pointerup','pointercancel'])document.addEventListener(ev,e=>{if(e.target!==cv&&tp.has(e.pointerId)&&(tp.get(e.pointerId)==='J'||tp.get(e.pointerId)==='F')){tp.delete(e.pointerId);updTouch();}});
 for(const ev of['pointerup','pointercancel','lostpointercapture'])cv.addEventListener(ev,e=>{if(tp.has(e.pointerId)){tp.delete(e.pointerId);updTouch();}});
 cv.addEventListener('pointermove',e=>{
-  preferPointer(e.pointerType||'mouse');
-  if(e.pointerType==='touch')return;
+  preferPointer(e.pointerType);
+  if(e.pointerType!=='mouse'||inputMode==='touch')return;
   const {x,y}=canvasXY(e);applyHover(x,y);
 });
 cv.addEventListener('pointerleave',()=>{G.uiHover=null;cv.style.cursor='default';});
 function wireTopBtn(id,fn){
   const el=document.getElementById(id);if(!el)return;
   el.style.cursor='pointer';
-  const go=e=>{e.preventDefault();e.stopPropagation();initAudio();preferPointer(e.pointerType||'mouse');fn(e);};
+  const go=e=>{e.preventDefault();e.stopPropagation();initAudio();preferPointer(e.pointerType);fn(e);};
   el.addEventListener('pointerdown',go);
   el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();}); // avoid double-fire after pointerdown
 }
@@ -1192,6 +1222,8 @@ wireTopBtn('bPause',()=>{if(G.paused){clearRotPause();G.paused=false;SFX.pause()
 wireTopBtn('bMute',()=>toggleMute());
 wireTopBtn('bFull',()=>{});
 {const bf=document.getElementById('bFull');bf.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleFullscreen();},true);}
+{const it=document.getElementById('iabTip');if(it){const tx=document.getElementById('iabTxt');if(tx)tx.textContent=IN_APP_IOS?'For fullscreen, tap \u2022\u2022\u2022 \u2192 Open in Safari':'For fullscreen, tap \u22EE \u2192 Open in browser';
+ const hide=e=>{e.preventDefault();e.stopPropagation();store.set('elonIabTip','x');it.classList.remove('show');};it.addEventListener('pointerdown',hide);it.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();});}}
 {const fb=document.getElementById('fsBanner');fb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();});fb.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();markFsSeen();requestFS();syncUI(true);});}
 {const ib=document.getElementById('installBtn');ib.addEventListener('pointerdown',e=>{e.stopPropagation();});ib.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const d=deferredInstall;if(!d)return;try{d.prompt();const uc=d.userChoice;if(uc&&uc.then)uc.then(()=>{deferredInstall=null;syncUI(true);}).catch(()=>{});}catch(_){}});}
 wireTopBtn('bHome',()=>{if(G.state==='title')openStageSelect();else goHome();});
@@ -1209,8 +1241,9 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   dx=Math.round((W-dw)/2);dy=Math.round((H-dh)/2);}
  if(cv.width!==VW)cv.width=VW;if(cv.height!==VH)cv.height=VH;ctx.imageSmoothingEnabled=false;for(const k in SKY)delete SKY[k];
  Object.assign(cv.style,{width:dw+'px',height:dh+'px',left:dx+'px',top:dy+'px'});
- const scale=dw/VW;const bF=document.getElementById('bFull');if(bF)bF.classList.toggle('on',td&&fsSupported()&&!isStandalone());
- {const fb=document.getElementById('fsBanner'),ib=document.getElementById('installBtn');const showFs=td&&!portrait&&G.state==='title'&&!fsElement()&&!isStandalone()&&fsSupported()&&!fsSeen();fb.classList.toggle('show',showFs);
+ const scale=dw/VW;const bF=document.getElementById('bFull');if(bF)bF.classList.toggle('on',td&&fsSupported()&&!isStandalone()&&!IN_APP);
+ {const fb=document.getElementById('fsBanner'),ib=document.getElementById('installBtn');const showFs=td&&!portrait&&G.state==='title'&&!fsElement()&&!isStandalone()&&fsSupported()&&!fsSeen()&&!IN_APP;
+  const it=document.getElementById('iabTip');if(it){const showIt=IN_APP&&G.state==='title'&&!fsElement()&&store.get('elonIabTip','')!=='x';it.classList.toggle('show',showIt);if(showIt){it.style.left='50%';it.style.transform='translateX(-50%)';it.style.top=(portrait?Math.max(8,dy+dh+12):dy+Math.round(dh*.80))+'px';}}fb.classList.toggle('show',showFs);
   const showIn=td&&G.state==='title'&&!!deferredInstall&&!isStandalone();ib.classList.toggle('show',showIn);
   if(showFs){fb.style.left='50%';fb.style.transform='translateX(-50%)';fb.style.top=(dy+Math.round(dh*.80))+'px';}
   if(showIn){ib.style.left=(dx+10)+'px';ib.style.top=(dy+dh-46)+'px';if(portrait){ib.style.top=(dy+dh+14)+'px';}}
@@ -1222,23 +1255,27 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
  const blast=G.state==='blastar';
  if(tF)tF.style.display=blast?'flex':'none';
  if(portrait){const area=H-(dy+dh),bs=Math.round(clamp(W*.22,68,100)),js=Math.round(bs*1.25),bottom=Math.round(clamp(area*.12,16,70));
-  Object.assign(dpad.style,{left:'12px',bottom:bottom+'px',width:(bs*2+12)+'px',height:bs+'px',top:'auto'});
-  {const l=document.getElementById('tapLbl');if(l)Object.assign(l.style,{left:'12px',width:(bs*2+12)+'px',bottom:(bottom+bs+6)+'px',top:'auto'});}
-  Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+12)+'px',width:bs+'px',height:bs+'px'});
+  // v15: tall rounded bars (portrait: ~17% of the width each, up to ~45% of the free area below the picture)
+  const bw=Math.round(clamp(W*.17,60,90)),bh=Math.round(clamp(Math.min(area*.5,H*.26),bs,240)),bg=12;
+  Object.assign(dpad.style,{left:'12px',bottom:bottom+'px',width:(bw*2+bg)+'px',height:bh+'px',top:'auto'});
+  {const l=document.getElementById('tapLbl');if(l)Object.assign(l.style,{left:'12px',width:(bw*2+bg)+'px',bottom:(bottom+bh+6)+'px',top:'auto'});}
+  Object.assign(tL.style,{left:'0',width:bw+'px',height:bh+'px'});Object.assign(tR.style,{left:(bw+bg)+'px',width:bw+'px',height:bh+'px'});
   tJ.style.display='none';
-  if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
+  if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bh-js)/2))+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
  else{const bs=Math.round(clamp(H*.22,80,90)),js=Math.round(clamp(bs+4,84,92)),gap=14;
   // v13: controls in the UPPER corners: centre ~32% height, ~3.5% from the side edges,
   // kept below the SCORE/DOGE HUD (left) and below the top buttons (right)
-  const hudB=dy+Math.round(30*dh/VH),tb=tbtns.getBoundingClientRect(),tbB=tb.bottom>0?tb.bottom:dy+50;
-  let topL=Math.round(H*.32-bs/2);topL=Math.max(topL,hudB+6);
-  let topR=Math.round(H*.32-js/2);topR=Math.max(topR,Math.round(tbB+6),hudB+6);
-  const cyL=topL+bs/2,cyR=topR+js/2,cy=Math.max(cyL,cyR);topL=Math.round(cy-bs/2);topR=Math.round(cy-js/2); // same centre height on both sides
+  const hudB=dy+Math.round(34*dh/VH),tb=tbtns.getBoundingClientRect(),tbB=tb.bottom>0?tb.bottom:dy+50;
+  // v15: \u25C0 \u25B6 are tall rounded bars side by side on the left: ~11% of the width each, ~42% of the height,
+  // centred around the old upper-left spot (~32%) but never above the HUD
+  const bw=Math.round(clamp(W*.11,64,120)),bh=Math.round(clamp(H*.42,120,320)),bg=Math.round(clamp(W*.012,8,14));
+  let topL=Math.round(H*.32-bh/2);topL=Math.max(topL,hudB+4);topL=Math.min(topL,H-bh-30);
+  const cy=topL+bh/2;let topR=Math.round(cy-js/2);topR=Math.max(topR,Math.round(tbB+6),hudB+6);
   const lx=Math.round(W*.035),rx=Math.round(W*.035);
-  Object.assign(dpad.style,{left:lx+'px',top:topL+'px',width:(bs*2+gap)+'px',height:bs+'px',bottom:'auto'});
-  {const l=document.getElementById('tapLbl');if(l)Object.assign(l.style,{left:lx+'px',width:(bs*2+gap)+'px',top:(topL+bs+6)+'px',bottom:'auto'});}
-  Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+gap)+'px',width:bs+'px',height:bs+'px'});
+  Object.assign(dpad.style,{left:lx+'px',top:topL+'px',width:(bw*2+bg)+'px',height:bh+'px',bottom:'auto'});
+  {const l=document.getElementById('tapLbl');if(l)Object.assign(l.style,{left:lx+'px',width:(bw*2+bg)+'px',top:(topL+bh+6)+'px',bottom:'auto'});}
+  Object.assign(tL.style,{left:'0',width:bw+'px',height:bh+'px'});Object.assign(tR.style,{left:(bw+bg)+'px',width:bw+'px',height:bh+'px'});
   tJ.style.display='none'; // v12: no JUMP button on mobile - tap anywhere on screen to jump
   if(tF)Object.assign(tF.style,{right:rx+'px',top:topR+'px',width:js+'px',height:js+'px',left:'auto',bottom:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
@@ -1256,7 +1293,7 @@ const ELON_ART=new Image();let ELON_ART_OK=false;
 ELON_ART.onload=()=>{ELON_ART_OK=true;};ELON_ART.onerror=()=>{ELON_ART_OK=false;};
 ELON_ART.src=ELON_ART_URI;
 
-window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;},ctrlHintLines,TAP_HINT,doExit,leaveExit,exitRect};
+window.__elon={get inputMode(){return inputMode;},get fsFailed(){return fsFailed;},get lockFailed(){return lockFailed;},rotCardAllowed,IN_APP,MOBILE_UA,get isTouch(){return isTouch;},G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;},ctrlHintLines,TAP_HINT,doExit,leaveExit,exitRect};
 })();
 
 </script></body></html>

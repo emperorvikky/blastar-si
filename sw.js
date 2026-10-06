@@ -1,5 +1,5 @@
 // ELON: Road to Mars - minimal offline cache (network-first for the page so updates show immediately)
-const CACHE = 'elon-road-v14';
+const CACHE = 'elon-road-v15';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {}));
