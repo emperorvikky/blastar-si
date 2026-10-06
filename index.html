@@ -45,6 +45,9 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 .pill.show{display:flex}
 #installBtn{border-color:#7fe7ff;color:#7fe7ff;box-shadow:0 0 0 2px #0a2a33,0 0 12px rgba(127,231,255,.45)}
 #iabTip{border-color:#9aa6c4;color:#e8ecf8;background:rgba(10,12,24,.86);box-shadow:0 0 0 2px #10131f,0 0 10px rgba(0,0,0,.5);font:700 12px/1.2 system-ui,sans-serif;letter-spacing:.2px;padding:7px 12px;white-space:nowrap;max-width:94vw}
+#rotTip{position:absolute;z-index:6;display:none;pointer-events:none;text-align:center;font:600 12px/1.5 system-ui,sans-serif;color:rgba(232,236,248,.85);background:rgba(10,12,24,.55);border:1px solid rgba(154,166,196,.45);border-radius:12px;padding:5px 12px;white-space:nowrap}
+#rotTip.show{display:block}
+#rotTip2{color:rgba(255,210,63,.85)}
 #bFull{display:none}
 #bFull.on{display:flex}
 
@@ -61,6 +64,7 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 </div>
 <button class="pill" id="fsBanner" type="button">&#x26F6; Tap for fullscreen</button>
 <button class="pill" id="installBtn" type="button">&#x2B07; Install app</button>
+<div id="rotTip"><div>&#x21BB; Rotate your phone for best play</div><div id="rotTip2">&#x22EE; &#x2192; Open in browser for fullscreen</div></div>
 <div class="pill" id="iabTip" role="note"><span id="iabTxt">For fullscreen, tap &#x22EE; &#x2192; Open in browser</span><b aria-label="Dismiss" style="margin-left:6px;opacity:.85">&#x2715;</b></div>
 <div id="audioHint">🔊 Tap / press any key to enable sound</div>
 <div id="touch">
@@ -971,7 +975,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v15-inapp-touch';
+const BUILD_TAG='v15b-portrait-play';
 let fsFailed=false,lockFailed=false;
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{lockFailed=true;rotImpossible();});}else{lockFailed=true;rotImpossible();}}catch(e){lockFailed=true;rotImpossible();}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
@@ -1000,9 +1004,11 @@ function inGameplay(){return G.state==='play'||G.state==='blastar'||G.state==='d
 // v15: the 'rotate your phone' pause card only makes sense where the page can actually rotate. In in-app browsers
 // (X/Facebook/Instagram WebViews, often portrait-locked) or when fullscreen / orientation lock is missing or failed,
 // play straight away in portrait with the controls visible instead of pausing behind the card.
-function rotCardAllowed(){let lk=false;try{lk=!!(screen.orientation&&screen.orientation.lock);}catch(e){}return !IN_APP&&!fsFailed&&!lockFailed&&lk&&fsSupported();}
+// v15b: never pause / hide the controls in portrait - portrait is fully playable; a small non-blocking tip suggests rotating
+function rotCardAllowed(){return false;}
 function rotImpossible(){if(G.rotPause&&!rotCardAllowed()){clearRotPause();G.paused=false;applyPauseAudio(false);}try{syncUI(true);}catch(e){}}
 function updateRotate(){const pt=isTouchDevice()&&isPortraitNow();document.body.classList.toggle('portraitTouch',pt);
+ {const rt=document.getElementById('rotTip');if(rt){const show=pt&&inGameplay()&&!G.paused;rt.classList.toggle('show',show);if(show){const r=cv.getBoundingClientRect();rt.style.top=Math.round(r.bottom+10)+'px';rt.style.left='50%';rt.style.transform='translateX(-50%)';const l2=document.getElementById('rotTip2');if(l2)l2.style.display=IN_APP?'block':'none';}}}
  if(!pt){G.rotDismissed=false;if(G.rotPause){G.rotPause=false;G.paused=false;applyPauseAudio(false);}return;}
  if(inGameplay()&&!G.paused&&!G.rotDismissed&&rotCardAllowed()){G.paused=true;G.rotPause=true;G.pauseSel=0;for(const k in keys)keys[k]=false;if(typeof tp!=='undefined'){tp.clear();updTouch();}applyPauseAudio(true);}}
 function markFsSeen(){try{sessionStorage.setItem('elonFsBanner','1');}catch(e){}}
@@ -1222,6 +1228,7 @@ wireTopBtn('bPause',()=>{if(G.paused){clearRotPause();G.paused=false;SFX.pause()
 wireTopBtn('bMute',()=>toggleMute());
 wireTopBtn('bFull',()=>{});
 {const bf=document.getElementById('bFull');bf.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleFullscreen();},true);}
+{const l2=document.getElementById('rotTip2');if(l2)l2.textContent=IN_APP_IOS?'\u2022\u2022\u2022 \u2192 Open in Safari for fullscreen':'\u22EE \u2192 Open in browser for fullscreen';}
 {const it=document.getElementById('iabTip');if(it){const tx=document.getElementById('iabTxt');if(tx)tx.textContent=IN_APP_IOS?'For fullscreen, tap \u2022\u2022\u2022 \u2192 Open in Safari':'For fullscreen, tap \u22EE \u2192 Open in browser';
  const hide=e=>{e.preventDefault();e.stopPropagation();store.set('elonIabTip','x');it.classList.remove('show');};it.addEventListener('pointerdown',hide);it.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();});}}
 {const fb=document.getElementById('fsBanner');fb.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();initAudio();});fb.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();markFsSeen();requestFS();syncUI(true);});}
