@@ -429,7 +429,7 @@ function ensureAudioGraph(){
 }
 function unlockAudio(){
   if(!ensureAudioGraph())return;
-  if(AC.state==='suspended')AC.resume().catch(()=>{});
+  if(AC.state==='suspended'&&G.state!=='exit')AC.resume().catch(()=>{});
   if(!unlocked&&AC){try{const b=AC.createBuffer(1,1,22050),s=AC.createBufferSource();s.buffer=b;s.connect(AC.destination);s.start(0);unlocked=true;audioHint=false;const ah=document.getElementById('audioHint');if(ah)ah.classList.remove('show');try{if(!muted)SFX.unlockSting();}catch(e){}if(G&&(G.state==='title'||G.state==='stageselect'))setMusic('title');}catch(e){}}
   syncMuteUI();
 }
@@ -746,6 +746,7 @@ function update(dt){G.t+=dt;
  inp.u=!!(keys.ArrowUp||keys.KeyW||touch.u);inp.d=!!(keys.ArrowDown||keys.KeyS||touch.d);
  inp.j=!!(keys.Space||keys.ArrowUp||keys.KeyW||keys.KeyZ||keys.KeyK||touch.j);
  inp.f=!!(keys.Space||keys.KeyZ||keys.KeyK||keys.KeyX||touch.f);
+ if(G.state==='exit'){G.stT+=dt;return;}
  if(G.state==='title'){G.stT+=dt;if(mus.id!=='title'){if(unlocked)setMusic('title');}return;}
  if(G.state==='stageselect'){G.stT+=dt;if(mus.id!=='title'&&unlocked)setMusic('title');return;}
  if(G.state==='intro'){G.introT+=dt;if(G.introT>2.0){G.state='play';unlockAudio();setMusic(LV.def.music);}return;}
@@ -803,10 +804,10 @@ function drawPauseMenu(){
   if(G.rotPause){drawRotateCard();return;}
   ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,VW,VH);
   drawTextOutline('PAUSED',VW/2,40,'#ffd23f',3,'#3a1d00');
-  const opts=['RESUME','RESTART STAGE','HOME'];
+  const opts=['RESUME','RESTART STAGE','HOME','EXIT'];
   opts.forEach((o,i)=>{const sel=G.pauseSel===i;drawText((sel?'> ':'  ')+o,VW/2,90+i*18,sel?'#ffd23f':'#ffffff',1,'center');});
-  drawText(LEVELS[G.level]?LEVELS[G.level].name:'',VW/2,160,'#aab4cc',1,'center');
-  drawText('M: SOUND  ESC: BACK',VW/2,190,'#55607a',1,'center');
+  drawText(LEVELS[G.level]?LEVELS[G.level].name:'',VW/2,170,'#aab4cc',1,'center');
+  drawText('M: SOUND  ESC: BACK',VW/2,196,'#55607a',1,'center');
 }
 function drawElonPortrait(x,y,h){const img=(typeof ELON_ART_OK!=='undefined'&&ELON_ART_OK)?ELON_ART:null;if(img){const fh=Math.max(8,h|0),fw=Math.round(fh*(img.width/img.height));ctx.drawImage(img,Math.round(x),Math.round(y),fw,fh);return{w:fw,h:fh};}
  ctx.drawImage(EL.idle,Math.round(x),Math.round(y),24,32);return{w:24,h:32};}
@@ -828,7 +829,7 @@ function drawTitle(){const t=G.t;drawBG('starbase',t*6,t);drawGround('starbase',
  else{drawText('CLICK OR PRESS SPACE',VW/2,108,(Math.floor(t*2.2)%2===0)?'#ffffff':'#ffd23f',1,'center','#1c1a24');
  drawText('ARROWS/WASD + SPACE  ·  MOUSE OK',VW/2,124,'#1c2a50',1,'center',null);}
  if(!isTouch)drawText('ENTER: STAGE SELECT   M: SOUND',VW/2,138,'#55607a',1,'center',null);
- drawText('HI '+pad(G.hi,6),6,6,'#ffffff',1,'left','#1c1a24');
+ drawText('HI '+pad(G.hi,6),6,6,'#ffffff',1,'left','#1c1a24');drawExitButton(t);
  drawText('AN ORIGINAL PARODY GAME',VW/2,230,'#5a4632',1,'center',null);
  if(audioHint&&!unlocked){const ah=document.getElementById('audioHint');if(ah)ah.classList.add('show');}}
 function drawStageSelect(){drawBG('desert',0,G.t);ctx.fillStyle='rgba(5,8,18,.88)';ctx.fillRect(0,0,VW,VH);
@@ -919,7 +920,7 @@ function drawBlastar(){
   if(G.paused)drawPauseMenu();
 }
 function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoothingEnabled=false;
- if(G.state==='title')return drawTitle();if(G.state==='stageselect')return drawStageSelect();
+ if(G.state==='exit')return drawExit();if(G.state==='title')return drawTitle();if(G.state==='stageselect')return drawStageSelect();
  if(G.state==='win')return drawWin();if(G.state==='gameover')return drawGameOver();
  if(G.state==='blastar')return drawBlastar();if(!LV)return;if(G.state==='intro')return drawIntro();
  const cx=lerp(cam.px,cam.x,a),cr=Math.round(cx);
@@ -947,7 +948,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v7-controls-high';
+const BUILD_TAG='v8-exit';
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
 function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
@@ -963,7 +964,7 @@ function requestFS(){try{if(fsElement()){lockLandscape();return;}if(fsPending)re
 function exitFullscreen(){try{const ex=document.exitFullscreen||document.webkitExitFullscreen;if(ex&&fsElement()){const p=ex.call(document);if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 function toggleFullscreen(){if(fsElement())exitFullscreen();else requestFS();}
 let fsUserExited=false;
-function gestureFS(e){if(e.pointerType&&e.pointerType!=='touch')return;if(!isTouchDevice()||isStandalone()||fsElement())return;if(e.target&&e.target.closest&&e.target.closest('#bFull'))return;requestFS();}
+function gestureFS(e){if(G.state==='exit')return;if(e.pointerType&&e.pointerType!=='touch')return;if(!isTouchDevice()||isStandalone()||fsElement())return;if(e.target&&e.target.closest&&e.target.closest('#bFull'))return;requestFS();}
 function goFullscreen(){}
 const mqPortrait=window.matchMedia?matchMedia('(orientation: portrait)'):null;
 const mqCoarse=window.matchMedia?matchMedia('(pointer: coarse)'):null;
@@ -1012,13 +1013,42 @@ function drawRotateCard(){ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(0,0,VW,VH
  ctx.fillStyle='#3a1d00';ctx.fillRect(x-2,y-2,w+4,h+4);ctx.fillStyle='rgba(12,14,30,.94)';ctx.fillRect(x,y,w,h);ctx.fillStyle='#ffd23f';ctx.fillRect(x,y,w,2);ctx.fillRect(x,y+h-2,w,2);
  drawRotIcon(x+12,y+14,G.t,1);drawText('PAUSED',x+34,y+12,'#ffd23f',1,'left',null);drawText('TURN SIDEWAYS',x+34,y+24,'#ffffff',1,'left',null);
  drawText('TO KEEP PLAYING',x+34,y+34,'#ffffff',1,'left',null);drawText('TAP TO PLAY ANYWAY',VW/2,y+54,(Math.floor(G.t*2)%2)?'#7fe7ff':'#ffffff',1,'center',null);}
+// ---- EXIT ----
+function exitRect(){return{x:6,y:18,w:46,h:17};}
+function drawExitButton(t){const r=exitRect(),hov=G.uiHover&&G.uiHover.type==='exit';const x=r.x,y=r.y,w=r.w,h=r.h;
+ ctx.fillStyle='#1c0b0b';ctx.fillRect(x-1,y-1,w+2,h+2);ctx.fillStyle=hov?'#e04a3a':'#b8322a';ctx.fillRect(x,y,w,h);ctx.fillStyle=hov?'#ff7a64':'#de5444';ctx.fillRect(x,y,w,2);ctx.fillStyle='#7a1d18';ctx.fillRect(x,y+h-2,w,2);
+ // little door icon
+ ctx.fillStyle='#3a1210';ctx.fillRect(x+4,y+3,8,11);ctx.fillStyle='#ffd23f';ctx.fillRect(x+5,y+4,6,9);ctx.fillStyle='#3a1210';ctx.fillRect(x+9,y+8,1,2);
+ drawText('EXIT',x+16,y+5,'#ffffff',1,'left','#3a1210');}
+let exitT0=0;
+function doExit(){
+ for(const k in keys)keys[k]=false;try{tp.clear();updTouch();}catch(e){}
+ G.paused=false;G.rotPause=false;G.rotDismissed=false;G.state='exit';G.stT=0;exitT0=performance.now();
+ try{stopMusic();jetStop();}catch(e){}
+ try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
+ try{if(AC&&AC.state==='running')AC.suspend().catch(()=>{});}catch(e){}
+ try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}
+ exitFullscreen();
+ layout();
+ // browsers only allow window.close() for windows opened by script / installed-app windows
+ if(isStandalone()||window.opener){setTimeout(()=>{try{window.close();}catch(e){}},250);}
+}
+function leaveExit(){try{if(AC&&AC.state==='suspended')AC.resume().catch(()=>{});}catch(e){}initAudio();G.state='title';goHome();}
+function drawExit(){const t=G.t;ctx.fillStyle='#05060f';ctx.fillRect(0,0,VW,VH);
+ for(let i=0;i<70;i++){const sx=(hash(i,7)%VW+VW)%VW,sy=(hash(i,13)%VH+VH)%VH;ctx.fillStyle=((i+Math.floor(t*3))%9===0)?'#ffffff':'#4a5578';ctx.fillRect(sx,sy,1,1);}
+ ctx.fillStyle='#c1440e';ctx.beginPath();ctx.arc(VW-50,52,22,0,6.2832);ctx.fill();ctx.fillStyle='#e0662a';ctx.fillRect(VW-62,44,8,4);ctx.fillRect(VW-46,60,10,4);
+ drawElonPortrait(VW*.04,VH-150+Math.round(Math.sin(t*2)*2),110);
+ drawTextOutline('THANKS FOR',VW/2,64,'#ffd23f',2,'#3a1d00');drawTextOutline('PLAYING!',VW/2,88,'#ffd23f',3,'#3a1d00');
+ drawText('ELON: ROAD TO MARS',VW/2,124,'#ff8a2a',1,'center','#1c1a24');
+ if(G.stT>.5&&(Math.floor(t*2)%2===0))drawText(isTouch?'TAP TO PLAY AGAIN':'CLICK OR PRESS ANY KEY TO PLAY AGAIN',VW/2,166,'#ffffff',1,'center','#1c1a24');
+ drawText('HI '+pad(G.hi,6),VW/2,196,'#7fe7ff',1,'center','#1c1a24');}
 // ---- per-frame UI sync (controls visibility, pills) ----
 let uiKey='';
 function controlsWanted(){if(G.paused)return false;return G.state==='play'||G.state==='blastar'||G.state==='dying'||G.state==='intro'||(G.state==='clear'&&!(G.clr&&G.clr.menu));}
-function syncUI(force){const menu=G.state==='title'||G.state==='stageselect'||G.state==='gameover'||G.state==='win';
+function syncUI(force){const menu=G.state==='title'||G.state==='stageselect'||G.state==='gameover'||G.state==='win'||G.state==='exit';
  const key=[G.state,G.paused?1:0,controlsWanted()?1:0,menu?1:0,inputMode,isPortraitNow()?1:0,fsElement()?1:0,deferredInstall?1:0].join('|');
  if(!force&&key===uiKey){updateRotate();return;}uiKey=key;layout();}
-function menuPress(fromTouch){initAudio();SFX.blip();
+function menuPress(fromTouch){if(G.state==='exit'){if(G.stT>.5)leaveExit();return true;}initAudio();SFX.blip();
  if(G.paused){confirmPause();return true;}
  if(G.state==='title'){if(fromTouch)goFullscreen();openStageSelect();return true;}
  if(G.state==='stageselect'){SFX.select();startFromStage(G.stageSel);return true;}
@@ -1032,7 +1062,8 @@ function confirmPause(){
   const o=G.pauseSel;
   if(o===0){G.paused=false;SFX.pause();applyPauseAudio(false);}
   else if(o===1){G.paused=false;applyPauseAudio(false);G.cp=null;startLevel();}
-  else goHome();
+  else if(o===2)goHome();
+  else doExit();
 }
 function pressJump(fromTouch){initAudio();if((G.state==='play'||G.state==='blastar')&&!G.paused){if(P)P.jumpBuf=JBUF;return;}menuPress(fromTouch);}
 function togglePause(){if(G.state==='play'||G.state==='clear'||G.state==='dying'||G.state==='blastar'){G.paused=!G.paused;G.pauseSel=0;SFX.pause();applyPauseAudio(G.paused);layout();}}
@@ -1044,13 +1075,14 @@ document.addEventListener('fullscreenchange',()=>{if(fsElement())markFsSeen();la
 if(mqPortrait&&mqPortrait.addEventListener)mqPortrait.addEventListener('change',()=>layout());
 window.addEventListener('keydown',e=>{
  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+ if(G.state==='exit'){if(!e.repeat&&G.stT>.5&&e.code!=='Escape')leaveExit();return;}
  if(JUMPK.includes(e.code)&&!e.repeat&&!keys[e.code])pressJump(false);keys[e.code]=true;
  if(e.repeat)return;
  if(e.code==='KeyM')toggleMute();
  if(e.code==='Escape'||e.code==='KeyP'){if(G.state==='stageselect')goHome();else if(G.state==='title'){/*ignore*/}else togglePause();}
  if(e.code==='Enter'){if(G.state==='title'){SFX.select();openStageSelect();}else if(G.paused)confirmPause();else if(G.state==='play'||G.state==='blastar')togglePause();else menuPress(false);}
  // menus
- if(G.paused||G.state==='gameover'||G.state==='win'||(G.state==='clear'&&G.clr&&G.clr.menu)){if(e.code==='ArrowDown'||e.code==='KeyS'){if(G.paused)G.pauseSel=Math.min(2,G.pauseSel+1);else G.menuSel=Math.min(1,G.menuSel+1);SFX.blip();}
+ if(G.paused||G.state==='gameover'||G.state==='win'||(G.state==='clear'&&G.clr&&G.clr.menu)){if(e.code==='ArrowDown'||e.code==='KeyS'){if(G.paused)G.pauseSel=Math.min(3,G.pauseSel+1);else G.menuSel=Math.min(1,G.menuSel+1);SFX.blip();}
   if(e.code==='ArrowUp'||e.code==='KeyW'){if(G.paused)G.pauseSel=Math.max(0,G.pauseSel-1);else G.menuSel=Math.max(0,G.menuSel-1);SFX.blip();}}
  if(G.state==='stageselect'){if(e.code==='ArrowRight'||e.code==='KeyD'){G.stageSel=Math.min(11,G.stageSel+1);SFX.blip();}
   if(e.code==='ArrowLeft'||e.code==='KeyA'){G.stageSel=Math.max(0,G.stageSel-1);SFX.blip();}
@@ -1060,7 +1092,7 @@ window.addEventListener('keydown',e=>{
 });
 window.addEventListener('keyup',e=>{keys[e.code]=false;});
 window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;tp.clear();updTouch();if(G.state==='play'||G.state==='blastar'){G.paused=true;applyPauseAudio(true);}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(G.state==='play'||G.state==='blastar'){G.paused=true;applyPauseAudio(true);}if(AC)AC.suspend().catch(()=>{});}else if(AC)AC.resume().catch(()=>{});});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(G.state==='play'||G.state==='blastar'){G.paused=true;applyPauseAudio(true);}if(AC)AC.suspend().catch(()=>{});}else if(AC&&G.state!=='exit')AC.resume().catch(()=>{});});
 
 const tp=new Map(),dpad=document.getElementById('dpad'),tL=document.getElementById('tL'),tR=document.getElementById('tR'),tJ=document.getElementById('tJ'),tF=document.getElementById('tF'),tH=document.getElementById('tH');
 function dpadDir(e){const r=dpad.getBoundingClientRect();const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;if(y<.35)return'U';if(y>.65)return'D';return x<.5?'L':'R';}
@@ -1084,10 +1116,12 @@ function hitTestUI(sx,sy){
     const pb=stagePlayBtn();if(sx>=pb.x&&sx<=pb.x+pb.w&&sy>=pb.y&&sy<=pb.y+pb.h)return{type:'play'};
     return null;
   }
-  if(G.paused){const i=hitMenuRow(sx,sy,VW/2-90,VW/2+90,86,18,3);return i<0?null:{type:'pause',i};}
+  if(G.paused){const i=hitMenuRow(sx,sy,VW/2-90,VW/2+90,86,18,4);return i<0?null:{type:'pause',i};}
   if(G.state==='clear'&&G.clr&&G.clr.menu){const i=hitMenuRow(sx,sy,VW/2-90,VW/2+90,110,14,2);return i<0?null:{type:'clear',i};}
   if(G.state==='gameover'&&G.stT>1){const i=hitMenuRow(sx,sy,VW/2-90,VW/2+90,166,16,2);return i<0?null:{type:'gameover',i};}
   if(G.state==='win'&&G.stT>3){const i=hitMenuRow(sx,sy,VW/2-90,VW/2+90,204,14,2);return i<0?null:{type:'win',i};}
+  if(G.state==='title'){const r=exitRect();if(sx>=r.x-6&&sx<=r.x+r.w+6&&sy>=r.y-6&&sy<=r.y+r.h+6)return{type:'exit'};}
+  if(G.state==='exit')return G.stT>.5?{type:'again'}:null;
   if(G.state==='title'&&isTouch){const r=launchRect();if(sx>=r.x-10&&sx<=r.x+r.w+6&&sy>=r.y-8&&sy<=r.y+r.h+8)return{type:'launch'};}
   if(G.state==='title'||G.state==='intro')return{type:'screen'};
   return null;
@@ -1117,6 +1151,8 @@ function handleCanvasPointer(e){
     if(hit&&hit.type==='play'){SFX.select();startFromStage(G.stageSel);G._stageClick=-1;return;}
     return;
   }
+  if(G.state==='exit'){if(G.stT>.5)leaveExit();return;}
+  if(hit&&hit.type==='exit'){SFX.select();doExit();return;}
   if(G.paused&&hit&&hit.type==='pause'){G.pauseSel=hit.i;confirmPause();return;}
   if(G.state==='clear'&&hit&&hit.type==='clear'){G.menuSel=hit.i;menuPress(touchLike);return;}
   if(G.state==='gameover'&&hit&&hit.type==='gameover'){G.menuSel=hit.i;menuPress(touchLike);return;}
@@ -1152,7 +1188,7 @@ syncMuteUI();
 // ===== LAYOUT =====
 const tbtns=document.getElementById('topbtns'),touchEl=document.getElementById('touch'),hint=document.getElementById('hint');
 function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.05;let dw,dh,dx,dy;
- const menuSt=G.state==='title'||G.state==='stageselect'||G.state==='gameover'||G.state==='win';const td=isTouchDevice();
+ const menuSt=G.state==='title'||G.state==='stageselect'||G.state==='gameover'||G.state==='win'||G.state==='exit';const td=isTouchDevice();
  if(portrait){VW=288;dw=W;dh=Math.round(W*VH/VW);if(dh>H*.58){dh=Math.round(H*.58);dw=Math.round(dh*VW/VH);}dx=Math.round((W-dw)/2);dy=(isTouch&&!menuSt)?0:Math.round((H-dh)/2);if(isTouch&&menuSt)dy=Math.round((H-dh)*.42);}
  else{const cap=td?600:480;const ideal=VH*W/H;VW=clamp(Math.round(ideal/2)*2,256,cap);dh=H;dw=Math.round(H*VW/VH);if(dw>W){dw=W;dh=Math.round(W*VH/VW);}
   if(td&&ideal<=cap+2&&ideal>=254){dw=W;dh=H;} // fill whole screen: tiny (<0.5%) non-uniform stretch instead of black bars
@@ -1177,7 +1213,7 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   Object.assign(tJ.style,{right:blast?'90px':'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
   if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
- else{const bs=Math.round(clamp(H*.22,80,90)),js=Math.round(clamp(bs+4,84,92)),gap=14,bot=Math.round(Math.max(10,H*.42-bs/2)); // v7: controls centred at ~58% height (easier thumb reach)
+ else{const bs=Math.round(clamp(H*.22,80,90)),js=Math.round(clamp(bs+4,84,92)),gap=14,bot=Math.round(Math.max(10,H*.52-bs/2)); // v8: controls centred at ~48% height (middle of the screen, easy thumb reach)
   const lx=Math.round(W*.12),rx=Math.round(W*.12);
   Object.assign(dpad.style,{left:lx+'px',bottom:bot+'px',width:(bs*2+gap)+'px',height:bs+'px',top:'auto'});
   Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+gap)+'px',width:bs+'px',height:bs+'px'});
@@ -1198,7 +1234,7 @@ const ELON_ART=new Image();let ELON_ART_OK=false;
 ELON_ART.onload=()=>{ELON_ART_OK=true;};ELON_ART.onerror=()=>{ELON_ART_OK=false;};
 ELON_ART.src=ELON_ART_URI;
 
-window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;}};
+window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;},doExit,leaveExit,exitRect};
 })();
 
 </script></body></html>
