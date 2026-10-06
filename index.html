@@ -31,7 +31,8 @@ html,body{margin:0;width:100%;height:100%;height:100dvh;background:#000;overflow
 #tJ{display:none!important;pointer-events:none}
 #touch.land .tbtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.38)}
 #touch.land .tbtn.on{background:rgba(255,210,63,.45);border-color:#ffd23f}
-#tapLbl{position:absolute;text-align:center;font:700 12px/1.2 system-ui,sans-serif;color:rgba(255,255,255,.75);text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;letter-spacing:.3px}
+#tapLbl{position:absolute;text-align:center;font:700 13px/1.2 system-ui,sans-serif;color:#fff;pointer-events:none;letter-spacing:.3px}
+#tapLbl span{display:inline-block;padding:3px 9px 4px;border-radius:11px;background:rgba(10,12,24,.62);border:1px solid rgba(255,210,63,.55);box-shadow:0 1px 4px rgba(0,0,0,.45);text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000,0 0 3px #000;white-space:nowrap}
 #hint{position:absolute;left:0;right:0;text-align:center;color:rgba(255,255,255,.5);font-size:13px;pointer-events:none;line-height:1.5}
 #hint b{color:#ffd23f;font-size:16px;letter-spacing:2px}
 #audioHint{position:absolute;left:50%;transform:translateX(-50%);bottom:18%;z-index:8;background:rgba(0,0,0,.72);border:2px solid #ffd23f;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;pointer-events:none;display:none;text-align:center;max-width:90%}
@@ -61,7 +62,7 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 <div id="touch">
  <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#9664; &#9654; move &middot; tap anywhere on screen to jump &middot; hold = higher<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
  <div id="dpad"><div class="tbtn" id="tL"><svg viewBox="0 0 10 10"><polygon points="7,1 2,5 7,9"/></svg></div><div class="tbtn" id="tR"><svg viewBox="0 0 10 10"><polygon points="3,1 8,5 3,9"/></svg></div></div>
- <div id="tapLbl">Tap screen = Jump</div>
+ <div id="tapLbl"><span>Tap screen = Jump</span></div>
  <div class="tbtn" id="tJ"><svg viewBox="0 0 10 10"><polygon points="1,7 5,2 9,7"/></svg><span>JUMP</span></div>
  <div class="tbtn" id="tF" style="display:none"><span>FIRE</span></div>
  <div class="tbtn" id="tH" style="display:none;font-size:18px"><span>⌂</span></div>
@@ -521,14 +522,14 @@ const LEVELS=[
 {name:'STARBASE DESERT',tag:'STOMP THE BOTS!',theme:'desert',music:'desert',W:120,phys:{g:1100,jv:370,djv:335,maxFall:430},build(b){b.g(0,24);b.sign(14,'BASE');b.coins(5,9,3);b.crate(10,8,'C');b.blk(11,8);b.crate(12,8,'P');b.enG('w',18);b.g(28,50);b.enG('w',35);b.plat(40,9,3);b.coins(40,8,3);b.g(52,70);b.cp(55);b.enG('w',60);b.crate(64,8,'C');b.arc(68,8,4);b.g(72,119);b.enG('w',85);b.en('f',95,6);b.tower(108,true);}},
 {name:'BOCA CHICA BEACH',tag:'WATCH THE TIDES!',theme:'beach',music:'beach',W:130,phys:{g:1050,jv:365,djv:330,maxFall:420},build(b){b.g(0,18);b.sign(14,'BEACH');b.coins(6,9,4);b.g(22,28,11);b.enG('w',24);b.plat(32,9,3);b.coins(32,8,3);b.g(38,48);b.crate(42,8,'P');b.enG('w',45);b.g(52,58,11);b.cp(54);b.plat(62,8,4);b.arc(62,7,4);b.g(70,85);b.enG('w',75);b.en('f',80,6);b.g(90,129);b.enG('w',100);b.tower(118,true);}},
 {name:'GIGAFACTORY',tag:'RIDE THE BELTS!',theme:'factory',music:'factory',W:140,phys:{g:1100,jv:360,djv:325,maxFall:430},build(b){b.g(0,20);b.sign(14,'GIGA');b.coins(6,9,3);b.conv(14,11,8,1);b.enG('w',16);b.blk(26,9,2,2);b.crate(28,8,'C');b.conv(32,11,10,-1);b.coins(34,8,4);b.g(46,60);b.cp(48);b.enG('w',52);b.conv(62,10,8,1);b.plat(74,7,3);b.crate(75,6,'P');b.g(80,100);b.enG('w',88);b.en('f',94,5);b.conv(102,11,8,-1);b.g(114,139);b.tower(128,false);}},
-{name:'BORING TUNNEL',tag:'FIND THE LIGHTS!',theme:'tunnel',music:'tunnel',W:140,phys:{g:1100,jv:370,djv:335,maxFall:430},dark:true,build(b){b.g(0,22);b.sign(14,'TUNNEL');b.coins(5,9,3);b.blk(12,8,1,3);b.enG('w',18);b.g(26,40);b.crate(30,8,'C');b.enG('w',34);b.plat(42,8,3);b.coins(42,7,3);b.g(50,70);b.cp(52);b.enG('w',58);b.blk(64,9,1,2);b.crate(68,8,'P');b.en('f',74,5);b.g(78,100);b.enG('w',88);b.arc(92,8,5);b.g(105,139);b.tower(126,false);}},
+{name:'BORING TUNNEL',tag:'FIND THE LIGHTS!',theme:'tunnel',music:'tunnel',W:140,phys:{g:1100,jv:370,djv:335,maxFall:430},dark:true,build(b){b.g(0,22);b.sign(14,'TUNNEL');b.coins(5,9,3);b.blk(12,8,1,3);b.enG('w',18);b.g(26,40);b.crate(30,8,'C');b.enG('w',34);b.plat(42,8,3);b.coins(42,7,3);b.g(50,72);b.cp(52);b.enG('w',58);b.blk(64,9,1,2);b.crate(68,8,'P');b.en('f',74,5);b.g(78,100);b.enG('w',88);b.arc(92,8,5);b.g(105,139);b.tower(126,false);}},
 {name:'CYBERTRUCK HIGHWAY',tag:'MOVING PLATFORMS!',theme:'highway',music:'highway',W:150,phys:{g:1100,jv:370,djv:335,maxFall:430},build(b){b.g(0,16);b.sign(14,'HWY');b.coins(5,9,3);b.mp(20,10,3,4,0,3.5);b.plat(27,9,2);b.coins(22,7,2);b.mp(32,8,3,0,3,3);b.plat(40,9,2);b.en('f',38,5);b.g(45,55);b.cp(47);b.crate(50,8,'P');b.mp(60,9,4,5,0,4);b.plat(68,8,2);b.mp(72,7,3,0,4,3.2);b.coins(72,5,3);b.plat(80,9,2);b.g(82,95);b.enG('w',88);b.mp(100,10,3,3,0,3);b.plat(106,9,2);b.mp(110,8,3,0,3,3.5);b.plat(116,9,2);b.g(120,149);b.tower(136,true);}},
 {name:'NEURALINK LAB',tag:'BOUNCE PADS!',theme:'lab',music:'lab',W:140,phys:{g:1000,jv:360,djv:320,maxFall:400},build(b){b.g(0,18);b.sign(14,'LAB');b.coins(5,9,3);b.bounce(14,11);b.blk(18,6,2,1);b.coins(18,5,2);b.plat(22,8,2);b.enG('w',24);b.bounce(30,11);b.plat(34,5,3);b.crate(35,4,'P');b.g(42,55);b.cp(44);b.bounce(58,11);b.plat(61,8,2);b.bounce(64,11);b.en('f',60,4);b.g(72,90);b.enG('h',78);b.bounce(95,11);b.plat(100,8,2);b.arc(98,6,4);b.g(108,139);b.tower(126,false);}},
 {name:'LAUNCH TOWER',tag:'CLIMB HIGH!',theme:'tower',music:'tower',W:100,phys:{g:1100,jv:380,djv:340,maxFall:430},build(b){b.g(0,14);b.sign(14,'TOWER');b.coins(4,9,3);for(let i=0;i<8;i++){b.blk(10+i*2,11-i,2,1);b.coins(10+i*2,10-i,1);}b.en('f',20,4);b.plat(28,4,3);b.crate(29,3,'P');b.cp(8);b.g(35,50);b.enG('w',40);for(let i=0;i<6;i++)b.blk(52+i,11-i,1,i+1);b.arc(58,4,3);b.g(60,99);b.enG('w',70);b.en('f',80,5);b.tower(88,true);}},
-{name:'UPPER ATMOSPHERE',tag:'WINDY RIDE!',theme:'clouds',music:'clouds',W:150,phys:{g:700,jv:320,djv:290,maxFall:300},wind:40,build(b){b.g(0,16);b.sign(14,'20KM');b.coins(5,9,3);b.crate(10,8,'P');b.plat(18,9,3);b.plat(26,7,3);b.coins(26,6,3);b.en('f',30,4);b.plat(36,8,4);b.g(45,55);b.cp(47);b.plat(58,9,3);b.plat(66,6,3);b.en('f',70,3);b.plat(78,8,4);b.arc(78,7,4);b.g(90,110);b.enG('w',95);b.plat(115,7,3);b.g(125,149);b.tower(136,false);}},
+{name:'UPPER ATMOSPHERE',tag:'WINDY RIDE!',theme:'clouds',music:'clouds',W:150,phys:{g:700,jv:320,djv:290,maxFall:300},wind:40,build(b){b.g(0,16);b.sign(14,'20KM');b.coins(5,9,3);b.crate(10,8,'P');b.plat(18,9,3);b.plat(26,7,3);b.coins(26,6,3);b.en('f',30,4);b.plat(36,8,4);b.g(45,55);b.cp(47);b.plat(58,9,3);b.plat(66,6,4);b.en('f',70,3);b.plat(78,8,4);b.arc(78,7,4);b.g(90,110);b.enG('w',95);b.plat(115,7,3);b.g(125,149);b.tower(136,false);}},
 {name:'LOW EARTH ORBIT',tag:'LOW GRAVITY!',theme:'orbit',music:'orbit',W:160,phys:{g:560,jv:300,djv:270,maxFall:260},build(b){b.g(0,16);b.sign(14,'LEO');b.blk(6,8);b.crate(7,8,'P');b.blk(8,8);b.coins(12,9,4);b.arc(18,7,5);b.g(24,34);b.en('f',28,7);b.mp(38,10,3,3,0,4);b.g(48,62);b.cp(50);b.enG('w',54);b.mp(66,8,2,0,4,3.5);b.plat(74,5,3);b.coins(74,4,3);b.g(82,100);b.en('f',88,5);b.en('f',94,7);b.plat(102,8,4);b.g(112,135);b.crate(118,8,'C');b.enG('w',124);b.mp(140,8,2,0,3,3);b.g(145,159);b.tower(148,false);}},
 {name:'MOON BASE',tag:'MOON HOPS!',theme:'moon',music:'moon',W:150,phys:{g:400,jv:280,djv:250,maxFall:220},build(b){b.g(0,18);b.sign(14,'MOON');b.coins(5,9,3);b.crate(10,8,'P');b.plat(18,8,3);b.en('f',24,5);b.g(28,40);b.enG('w',32);b.plat(45,7,4);b.coins(45,6,4);b.g(55,70);b.cp(57);b.enG('h',62);b.plat(75,6,3);b.arc(75,5,3);b.g(85,105);b.en('f',92,4);b.crate(98,8,'C');b.g(110,149);b.enG('w',120);b.tower(136,true);}},
-{name:'MARS SURFACE',tag:'DUST STORM!',theme:'mars',music:'mars',W:160,phys:{g:900,jv:350,djv:315,maxFall:380},build(b){b.g(0,20);b.sign(14,'MARS');b.coins(5,9,3);b.blk(10,8);b.crate(11,8,'C');b.enG('w',18);b.arc(24,8,3);b.g(28,42,10);b.enG('h',33);b.blk(36,6);b.crate(37,6,'P');b.g(48,65);b.cp(50);b.enG('h',55);b.enG('w',60);b.plat(68,9,3);b.en('f',74,6);b.g(78,100,11);b.enG('h',88);b.crate(95,8,'C');b.crate(96,8,'P');b.plat(103,9,3);b.enG('w',102);b.g(110,140,11);b.enG('h',120);b.en('f',128,5);b.g(145,159);b.tower(148,true);}},
+{name:'MARS SURFACE',tag:'DUST STORM!',theme:'mars',music:'mars',W:160,phys:{g:900,jv:350,djv:315,maxFall:380},build(b){b.g(0,22);b.sign(14,'MARS');b.coins(5,9,3);b.blk(10,8);b.crate(11,8,'C');b.enG('w',18);b.arc(24,8,3);b.g(28,42,10);b.enG('h',33);b.blk(36,6);b.crate(37,6,'P');b.g(48,65);b.cp(50);b.enG('h',55);b.enG('w',60);b.plat(68,9,3);b.en('f',74,6);b.g(78,100,11);b.enG('h',88);b.crate(95,8,'C');b.crate(96,8,'P');b.plat(103,9,3);b.enG('w',102);b.g(110,140,11);b.enG('h',120);b.en('f',128,5);b.g(145,159);b.tower(148,true);}},
 {name:'BLASTAR',tag:'BLAST THE INVADERS!',theme:'blastar',music:'blastar',W:80,phys:{g:0,jv:0,djv:0,maxFall:0},mode:'blastar',build(b){b.g(0,79);}}
 ];
 
@@ -952,7 +953,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v13-controls-32';
+const BUILD_TAG='v14-gapfix';
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
 function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
@@ -1216,7 +1217,7 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   const ah=document.getElementById('audioHint');if(ah)ah.style.visibility=showFs?'hidden':'';}
  const tw=tbtns.offsetWidth||160;const tl=Math.max(dx+4,Math.min(W-tw-6,dx+dw-tw-6));tbtns.style.left=tl+'px';tbtns.style.top=(dy+6)+'px';G.hudR=Math.ceil((dx+dw-tl+8)/scale)+4;
  if(portrait&&isTouch&&menuSt&&dy>=60){tbtns.style.top=(dy-52)+'px';G.hudR=4;} // portrait home: buttons sit above the picture, not over the logo
- touchEl.classList.toggle('on',inputMode==='touch'&&controlsWanted());const tapLbl=document.getElementById('tapLbl');if(tapLbl)tapLbl.textContent=G.state==='blastar'?'Tap screen = Fire':'Tap screen = Jump';touchEl.classList.toggle('land',!portrait);
+ touchEl.classList.toggle('on',inputMode==='touch'&&controlsWanted());const tapLbl=document.getElementById('tapLbl');if(tapLbl)(tapLbl.firstElementChild||tapLbl).textContent=G.state==='blastar'?'Tap screen = Fire':'Tap screen = Jump';touchEl.classList.toggle('land',!portrait);
  document.body.classList.toggle('landTouch',!portrait&&inputMode==='touch');
  const blast=G.state==='blastar';
  if(tF)tF.style.display=blast?'flex':'none';
