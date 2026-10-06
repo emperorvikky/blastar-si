@@ -952,7 +952,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v12-tap-anywhere';
+const BUILD_TAG='v13-controls-32';
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
 function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
@@ -1228,11 +1228,11 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
  else{const bs=Math.round(clamp(H*.22,80,90)),js=Math.round(clamp(bs+4,84,92)),gap=14;
-  // v10: controls in the UPPER corners (user's marked position): centre ~27% height, ~3.5% from the side edges,
+  // v13: controls in the UPPER corners: centre ~32% height, ~3.5% from the side edges,
   // kept below the SCORE/DOGE HUD (left) and below the top buttons (right)
   const hudB=dy+Math.round(30*dh/VH),tb=tbtns.getBoundingClientRect(),tbB=tb.bottom>0?tb.bottom:dy+50;
-  let topL=Math.round(H*.27-bs/2);topL=Math.max(topL,hudB+6);
-  let topR=Math.round(H*.27-js/2);topR=Math.max(topR,Math.round(tbB+6),hudB+6);
+  let topL=Math.round(H*.32-bs/2);topL=Math.max(topL,hudB+6);
+  let topR=Math.round(H*.32-js/2);topR=Math.max(topR,Math.round(tbB+6),hudB+6);
   const cyL=topL+bs/2,cyR=topR+js/2,cy=Math.max(cyL,cyR);topL=Math.round(cy-bs/2);topR=Math.round(cy-js/2); // same centre height on both sides
   const lx=Math.round(W*.035),rx=Math.round(W*.035);
   Object.assign(dpad.style,{left:lx+'px',top:topL+'px',width:(bs*2+gap)+'px',height:bs+'px',bottom:'auto'});
