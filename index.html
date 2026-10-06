@@ -947,7 +947,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v6-pwa-launch';
+const BUILD_TAG='v7-controls-high';
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
 function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
@@ -1177,7 +1177,7 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   Object.assign(tJ.style,{right:blast?'90px':'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
   if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
   hint.style.display='none';}
- else{const bs=Math.round(clamp(H*.22,80,90)),js=Math.round(clamp(bs+4,84,92)),gap=14,bot=Math.round(Math.max(10,H*.25-bs/2));
+ else{const bs=Math.round(clamp(H*.22,80,90)),js=Math.round(clamp(bs+4,84,92)),gap=14,bot=Math.round(Math.max(10,H*.42-bs/2)); // v7: controls centred at ~58% height (easier thumb reach)
   const lx=Math.round(W*.12),rx=Math.round(W*.12);
   Object.assign(dpad.style,{left:lx+'px',bottom:bot+'px',width:(bs*2+gap)+'px',height:bs+'px',top:'auto'});
   Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+gap)+'px',width:bs+'px',height:bs+'px'});
