@@ -30,6 +30,7 @@ html,body{margin:0;width:100%;height:100%;height:100dvh;background:#000;overflow
 #tJ,#tF,#tH{pointer-events:auto}
 #touch.land .tbtn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.38)}
 #touch.land .tbtn.on{background:rgba(255,210,63,.45);border-color:#ffd23f}
+#tapLbl{position:absolute;text-align:center;font:700 12px/1.2 system-ui,sans-serif;color:rgba(255,255,255,.75);text-shadow:0 1px 2px #000,0 0 3px #000;pointer-events:none;letter-spacing:.3px}
 #hint{position:absolute;left:0;right:0;text-align:center;color:rgba(255,255,255,.5);font-size:13px;pointer-events:none;line-height:1.5}
 #hint b{color:#ffd23f;font-size:16px;letter-spacing:2px}
 #audioHint{position:absolute;left:50%;transform:translateX(-50%);bottom:18%;z-index:8;background:rgba(0,0,0,.72);border:2px solid #ffd23f;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;pointer-events:none;display:none;text-align:center;max-width:90%}
@@ -57,8 +58,9 @@ body.portraitTouch{background:radial-gradient(ellipse at 50% 40%,#16244a 0%,#070
 <button class="pill" id="installBtn" type="button">&#x2B07; Install app</button>
 <div id="audioHint">🔊 Tap / press any key to enable sound</div>
 <div id="touch">
- <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#8592; &#8594; move &middot; JUMP (hold = higher)<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
+ <div id="hint"><b>ELON: ROAD TO MARS</b><br>&#9664; &#9654; move &middot; tap anywhere (or JUMP) to jump &middot; hold = higher<br>Stomp bots &middot; collect Dogecoins<br>12 stages to BLASTAR<br><span style="opacity:.7">Unofficial fan game &middot; no ads</span></div>
  <div id="dpad"><div class="tbtn" id="tL"><svg viewBox="0 0 10 10"><polygon points="7,1 2,5 7,9"/></svg></div><div class="tbtn" id="tR"><svg viewBox="0 0 10 10"><polygon points="3,1 8,5 3,9"/></svg></div></div>
+ <div id="tapLbl">Tap screen = Jump</div>
  <div class="tbtn" id="tJ"><svg viewBox="0 0 10 10"><polygon points="1,7 5,2 9,7"/></svg><span>JUMP</span></div>
  <div class="tbtn" id="tF" style="display:none"><span>FIRE</span></div>
  <div class="tbtn" id="tH" style="display:none;font-size:18px"><span>⌂</span></div>
@@ -96,7 +98,7 @@ function markCleared(i){if(i<0||i>11)return;const s=getCleared();s.add(i|0);stor
 function isCleared(i){return getCleared().has(i|0);}
 
 // ===== FONT =====
-const FONT={'A':'01110 10001 10001 11111 10001 10001 10001','B':'11110 10001 10001 11110 10001 10001 11110','C':'01110 10001 10000 10000 10000 10001 01110','D':'11110 10001 10001 10001 10001 10001 11110','E':'11111 10000 10000 11110 10000 10000 11111','F':'11111 10000 10000 11110 10000 10000 10000','G':'01110 10001 10000 10111 10001 10001 01111','H':'10001 10001 10001 11111 10001 10001 10001','I':'01110 00100 00100 00100 00100 00100 01110','J':'00111 00010 00010 00010 00010 10010 01100','K':'10001 10010 10100 11000 10100 10010 10001','L':'10000 10000 10000 10000 10000 10000 11111','M':'10001 11011 10101 10101 10001 10001 10001','N':'10001 10001 11001 10101 10011 10001 10001','O':'01110 10001 10001 10001 10001 10001 01110','P':'11110 10001 10001 11110 10000 10000 10000','Q':'01110 10001 10001 10001 10101 10010 01101','R':'11110 10001 10001 11110 10100 10010 10001','S':'01111 10000 10000 01110 00001 00001 11110','T':'11111 00100 00100 00100 00100 00100 00100','U':'10001 10001 10001 10001 10001 10001 01110','V':'10001 10001 10001 10001 10001 01010 00100','W':'10001 10001 10001 10101 10101 10101 01010','X':'10001 10001 01010 00100 01010 10001 10001','Y':'10001 10001 10001 01010 00100 00100 00100','Z':'11111 00001 00010 00100 01000 10000 11111',
+const FONT={'=':'00000 00000 11111 00000 11111 00000 00000',':':'00000 01100 01100 00000 01100 01100 00000','·':'00000 00000 00000 01100 01100 00000 00000','◀':'00010 00110 01110 11110 01110 00110 00010','▶':'01000 01100 01110 01111 01110 01100 01000','A':'01110 10001 10001 11111 10001 10001 10001','B':'11110 10001 10001 11110 10001 10001 11110','C':'01110 10001 10000 10000 10000 10001 01110','D':'11110 10001 10001 10001 10001 10001 11110','E':'11111 10000 10000 11110 10000 10000 11111','F':'11111 10000 10000 11110 10000 10000 10000','G':'01110 10001 10000 10111 10001 10001 01111','H':'10001 10001 10001 11111 10001 10001 10001','I':'01110 00100 00100 00100 00100 00100 01110','J':'00111 00010 00010 00010 00010 10010 01100','K':'10001 10010 10100 11000 10100 10010 10001','L':'10000 10000 10000 10000 10000 10000 11111','M':'10001 11011 10101 10101 10001 10001 10001','N':'10001 10001 11001 10101 10011 10001 10001','O':'01110 10001 10001 10001 10001 10001 01110','P':'11110 10001 10001 11110 10000 10000 10000','Q':'01110 10001 10001 10001 10101 10010 01101','R':'11110 10001 10001 11110 10100 10010 10001','S':'01111 10000 10000 01110 00001 00001 11110','T':'11111 00100 00100 00100 00100 00100 00100','U':'10001 10001 10001 10001 10001 10001 01110','V':'10001 10001 10001 10001 10001 01010 00100','W':'10001 10001 10001 10101 10101 10101 01010','X':'10001 10001 01010 00100 01010 10001 10001','Y':'10001 10001 10001 01010 00100 00100 00100','Z':'11111 00001 00010 00100 01000 10000 11111',
 '0':'01110 10001 10011 10101 11001 10001 01110','1':'00100 01100 00100 00100 00100 00100 01110','2':'01110 10001 00001 00010 00100 01000 11111','3':'11111 00010 00100 00010 00001 10001 01110','4':'00010 00110 01010 10010 11111 00010 00010','5':'11111 10000 11110 00001 00001 10001 01110','6':'00110 01000 10000 11110 10001 10001 01110','7':'11111 00001 00010 00100 01000 01000 01000','8':'01110 10001 10001 01110 10001 10001 01110','9':'01110 10001 10001 01111 00001 00010 01100',
 ' ':'00000 00000 00000 00000 00000 00000 00000','.':'00000 00000 00000 00000 00000 01100 01100',',':'00000 00000 00000 00000 01100 00100 01000','!':'00100 00100 00100 00100 00100 00000 00100','?':'01110 10001 00001 00010 00100 00000 00100',':':'00000 01100 01100 00000 01100 01100 00000','-':'00000 00000 00000 11111 00000 00000 00000','+':'00000 00100 00100 11111 00100 00100 00100','/':'00001 00010 00010 00100 01000 01000 10000',"'":'00100 00100 01000 00000 00000 00000 00000','(':'00010 00100 01000 01000 01000 00100 00010',')':'01000 00100 00010 00010 00010 00100 01000','*':'00000 00000 10001 01010 00100 01010 10001','<':'00010 00100 01000 10000 01000 00100 00010','>':'01000 00100 00010 00001 00010 00100 01000'};
 const FCH=Object.keys(FONT).join('');
@@ -598,7 +600,7 @@ function startBlastar(){
     bullets:[],enemies:[],ebullets:[],wave:0,waveT:0,score:G.score,
     boss:null,flash:1.2,state:'play',t:0,kills:0
   };
-  G.state='blastar';G.stT=0;G.paused=false;stopMusic();setMusic('blastar');SFX.blastar();say(stageAnnounce(11));
+  G.state='blastar';G.stT=0;G.paused=false;G.hintT=4.4;stopMusic();setMusic('blastar');SFX.blastar();say(stageAnnounce(11));
   layout();
 }
 
@@ -749,9 +751,10 @@ function update(dt){G.t+=dt;
  if(G.state==='exit'){G.stT+=dt;return;}
  if(G.state==='title'){G.stT+=dt;if(mus.id!=='title'){if(unlocked)setMusic('title');}return;}
  if(G.state==='stageselect'){G.stT+=dt;if(mus.id!=='title'&&unlocked)setMusic('title');return;}
- if(G.state==='intro'){G.introT+=dt;if(G.introT>2.0){G.state='play';unlockAudio();setMusic(LV.def.music);}return;}
+ if(G.state==='intro'){G.introT+=dt;if(G.introT>2.0){G.state='play';G.hintT=3.2;unlockAudio();setMusic(LV.def.music);}return;}
  if(G.state==='gameover'){G.stT+=dt;if(mus.id!=='gameover')setMusic('gameover');return;}
  if(G.state==='win'){G.stT+=dt;if(mus.id!=='win')setMusic('win');if(Math.random()<.25&&wcoins.length<40)wcoins.push({x:Math.random()*VW,y:-12,vy:rnd(30,70),f:Math.random()*6});for(const c of wcoins){c.y+=c.vy*dt;c.f+=dt*8;}wcoins=wcoins.filter(c=>c.y<VH+12);updateParts(dt);return;}
+ if((G.state==='play'||G.state==='blastar')&&!G.paused&&G.hintT>0)G.hintT-=dt;
  if(G.state==='blastar'){if(!G.paused)updateBlastar(dt);return;}
  if(G.paused)return;
  if(G.hitstop>0){G.hitstop-=dt;updateParts(dt);return;}
@@ -807,7 +810,7 @@ function drawPauseMenu(){
   const opts=['RESUME','RESTART STAGE','HOME','EXIT'];
   opts.forEach((o,i)=>{const sel=G.pauseSel===i;drawText((sel?'> ':'  ')+o,VW/2,90+i*18,sel?'#ffd23f':'#ffffff',1,'center');});
   drawText(LEVELS[G.level]?LEVELS[G.level].name:'',VW/2,170,'#aab4cc',1,'center');
-  drawText('M: SOUND  ESC: BACK',VW/2,196,'#55607a',1,'center');
+  drawText(inputMode==='touch'?(G.state==='blastar'?'TAP SCREEN = FIRE · ◀ ▶ = MOVE':'TAP SCREEN = JUMP · ◀ ▶ = MOVE'):'M: SOUND  ESC: BACK',VW/2,196,inputMode==='touch'?'#9aa6c4':'#55607a',1,'center');
 }
 function drawElonPortrait(x,y,h){const img=(typeof ELON_ART_OK!=='undefined'&&ELON_ART_OK)?ELON_ART:null;if(img){const fh=Math.max(8,h|0),fw=Math.round(fh*(img.width/img.height));ctx.drawImage(img,Math.round(x),Math.round(y),fw,fh);return{w:fw,h:fh};}
  ctx.drawImage(EL.idle,Math.round(x),Math.round(y),24,32);return{w:24,h:32};}
@@ -948,7 +951,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v10-controls-top';
+const BUILD_TAG='v11-tap-jump';
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{});}}catch(e){}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
 function fsElement(){return document.fullscreenElement||document.webkitFullscreenElement||null;}
@@ -1006,8 +1009,15 @@ function drawLaunchButton(t){const r=launchRect(),x=r.x,y=r.y,w=r.w,h=r.h;const 
  // caption
  const port=isPortraitNow();
  if(port){drawRotIcon(Math.round(VW/2-58),y+h+9,t,1);drawText('PLAY FULLSCREEN',VW/2+8,y+h+10,'#ffd23f',1,'center','#1c1a24');
-  if(!canLockOrientation())drawText('TURN YOUR PHONE SIDEWAYS',VW/2,y+h+22,'#ffffff',1,'center','#1c1a24');}
- else drawText((fsElement()||isStandalone())?'TAP TO PLAY':'TAP TO PLAY FULLSCREEN',VW/2,y+h+10,'#ffd23f',1,'center','#1c1a24');}
+  if(!canLockOrientation())drawText('TURN YOUR PHONE SIDEWAYS',VW/2,y+h+22,'#ffffff',1,'center','#1c1a24');
+  drawHintPill(TAP_HINT,VW/2,y+h+(canLockOrientation()?27:37));}
+ else{drawText((fsElement()||isStandalone())?'TAP TO PLAY':'TAP TO PLAY FULLSCREEN',VW/2,y+h+10,'#ffd23f',1,'center','#1c1a24');drawHintPill(TAP_HINT,VW/2,y+h+25);}}
+const TAP_HINT='TAP ANYWHERE TO JUMP · ◀ ▶ TO MOVE';
+function drawHintPill(s,cx,y,col,alpha){const w=textW(s.toUpperCase(),1)+10;ctx.save();ctx.globalAlpha=alpha==null?1:alpha;ctx.fillStyle='rgba(10,12,28,.62)';ctx.fillRect(Math.round(cx-w/2),y-3,w,13);ctx.fillStyle='rgba(255,210,63,.55)';ctx.fillRect(Math.round(cx-w/2),y+9,w,1);drawText(s,cx,y,col||'#ffffff',1,'center','#1c1a24');ctx.restore();}
+function ctrlHintLines(){const blast=G.state==='blastar';if(inputMode==='touch')return blast?['TAP ANYWHERE TO FIRE','◀ ▶ TO MOVE']:['TAP ANYWHERE TO JUMP · HOLD = HIGHER','◀ ▶ BUTTONS TO MOVE'];
+ return blast?['ARROWS MOVE · SPACE / X FIRE']:['ARROWS / A D MOVE · SPACE JUMP (HOLD = HIGHER)'];}
+function drawOverlayHints(){if(!(G.hintT>0)||G.paused||(G.state!=='play'&&G.state!=='blastar'))return;if(G.state==='blastar'&&BS&&BS.flash>0)return;
+ ctx.setTransform(1,0,0,1,0,0);const a=Math.min(1,G.hintT/0.5);const L=ctrlHintLines();L.forEach((s,i)=>drawHintPill(s,VW/2,40+i*15,i===0?'#ffd23f':'#ffffff',a));}
 function drawRotIcon(x,y,t,sc){const side=Math.floor(t*1.2)%2===1;ctx.fillStyle='#3a1d00';const W=side?14:9,H=side?9:14;ctx.fillRect(x-1,y-1,W+2,H+2);ctx.fillStyle='#ffd23f';ctx.fillRect(x,y,W,H);ctx.fillStyle='#16244a';ctx.fillRect(x+1,y+1,W-2,H-2);ctx.fillStyle='#ffd23f';if(side)ctx.fillRect(x+W-2,y+H/2-1,1,2);else ctx.fillRect(x+W/2-1,y+H-2,2,1);}
 function drawRotateCard(){ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(0,0,VW,VH);const w=Math.min(200,VW-24),h=74,x=Math.round(VW/2-w/2),y=64;
  ctx.fillStyle='#3a1d00';ctx.fillRect(x-2,y-2,w+4,h+4);ctx.fillStyle='rgba(12,14,30,.94)';ctx.fillRect(x,y,w,h);ctx.fillStyle='#ffd23f';ctx.fillRect(x,y,w,2);ctx.fillRect(x,y+h-2,w,2);
@@ -1157,10 +1167,12 @@ function handleCanvasPointer(e){
   if(G.state==='clear'&&hit&&hit.type==='clear'){G.menuSel=hit.i;menuPress(touchLike);return;}
   if(G.state==='gameover'&&hit&&hit.type==='gameover'){G.menuSel=hit.i;menuPress(touchLike);return;}
   if(G.state==='win'&&hit&&hit.type==='win'){G.menuSel=hit.i;menuPress(touchLike);return;}
+  if((G.state==='play'||G.state==='blastar')&&!G.paused&&touchLike){try{cv.setPointerCapture(e.pointerId);}catch(_){}const k=G.state==='blastar'?'F':'J';tp.set(e.pointerId,k);updTouch();if(k==='J')pressJump(true);G.tapJumps=(G.tapJumps||0)+1;return;}
   if(G.state==='title'||G.state==='intro'){menuPress(touchLike);return;}
   if(G.state!=='play'&&G.state!=='blastar')menuPress(touchLike);
 }
 cv.addEventListener('pointerdown',handleCanvasPointer);
+for(const ev of['pointerup','pointercancel','lostpointercapture'])cv.addEventListener(ev,e=>{if(tp.has(e.pointerId)){tp.delete(e.pointerId);updTouch();}});
 cv.addEventListener('pointermove',e=>{
   preferPointer(e.pointerType||'mouse');
   if(e.pointerType==='touch')return;
@@ -1203,12 +1215,13 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   const ah=document.getElementById('audioHint');if(ah)ah.style.visibility=showFs?'hidden':'';}
  const tw=tbtns.offsetWidth||160;const tl=Math.max(dx+4,Math.min(W-tw-6,dx+dw-tw-6));tbtns.style.left=tl+'px';tbtns.style.top=(dy+6)+'px';G.hudR=Math.ceil((dx+dw-tl+8)/scale)+4;
  if(portrait&&isTouch&&menuSt&&dy>=60){tbtns.style.top=(dy-52)+'px';G.hudR=4;} // portrait home: buttons sit above the picture, not over the logo
- touchEl.classList.toggle('on',inputMode==='touch'&&controlsWanted());touchEl.classList.toggle('land',!portrait);
+ touchEl.classList.toggle('on',inputMode==='touch'&&controlsWanted());const tapLbl=document.getElementById('tapLbl');if(tapLbl)tapLbl.textContent=G.state==='blastar'?'Tap screen = Fire':'Tap screen = Jump';touchEl.classList.toggle('land',!portrait);
  document.body.classList.toggle('landTouch',!portrait&&inputMode==='touch');
  const blast=G.state==='blastar';
  if(tF)tF.style.display=blast?'flex':'none';
  if(portrait){const area=H-(dy+dh),bs=Math.round(clamp(W*.22,68,100)),js=Math.round(bs*1.25),bottom=Math.round(clamp(area*.12,16,70));
   Object.assign(dpad.style,{left:'12px',bottom:bottom+'px',width:(bs*2+12)+'px',height:bs+'px',top:'auto'});
+  {const l=document.getElementById('tapLbl');if(l)Object.assign(l.style,{left:'12px',width:(bs*2+12)+'px',bottom:(bottom+bs+6)+'px',top:'auto'});}
   Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+12)+'px',width:bs+'px',height:bs+'px'});
   Object.assign(tJ.style,{right:blast?'90px':'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto'});
   if(tF)Object.assign(tF.style,{right:'14px',bottom:(bottom+Math.round((bs-js)/2)+4)+'px',width:js+'px',height:js+'px',left:'auto',top:'auto',display:blast?'flex':'none'});
@@ -1222,6 +1235,7 @@ function layout(){const W=window.innerWidth,H=window.innerHeight,portrait=H>W*1.
   const cyL=topL+bs/2,cyR=topR+js/2,cy=Math.max(cyL,cyR);topL=Math.round(cy-bs/2);topR=Math.round(cy-js/2); // same centre height on both sides
   const lx=Math.round(W*.035),rx=Math.round(W*.035);
   Object.assign(dpad.style,{left:lx+'px',top:topL+'px',width:(bs*2+gap)+'px',height:bs+'px',bottom:'auto'});
+  {const l=document.getElementById('tapLbl');if(l)Object.assign(l.style,{left:lx+'px',width:(bs*2+gap)+'px',top:(topL+bs+6)+'px',bottom:'auto'});}
   Object.assign(tL.style,{left:'0',width:bs+'px',height:bs+'px'});Object.assign(tR.style,{left:(bs+gap)+'px',width:bs+'px',height:bs+'px'});
   Object.assign(tJ.style,{right:(rx+(blast?js+gap:0))+'px',top:topR+'px',width:js+'px',height:js+'px',left:'auto',bottom:'auto'});
   if(tF)Object.assign(tF.style,{right:rx+'px',top:topR+'px',width:js+'px',height:js+'px',left:'auto',bottom:'auto',display:blast?'flex':'none'});
@@ -1232,7 +1246,7 @@ window.addEventListener('resize',layout);window.addEventListener('orientationcha
 
 // ===== MAIN =====
 let last=performance.now(),acc=0;
-function frame(now){let dt=(now-last)/1000;last=now;if(dt>.1)dt=.1;if(dt<0)dt=0;syncUI();acc+=dt;let n=0;while(acc>=STEP&&n<12){update(STEP);acc-=STEP;n++;}if(n>=12)acc=0;render(acc/STEP);requestAnimationFrame(frame);}
+function frame(now){let dt=(now-last)/1000;last=now;if(dt>.1)dt=.1;if(dt<0)dt=0;syncUI();acc+=dt;let n=0;while(acc>=STEP&&n<12){update(STEP);acc-=STEP;n++;}if(n>=12)acc=0;render(acc/STEP);drawOverlayHints();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 
 // Portrait image
@@ -1240,7 +1254,7 @@ const ELON_ART=new Image();let ELON_ART_OK=false;
 ELON_ART.onload=()=>{ELON_ART_OK=true;};ELON_ART.onerror=()=>{ELON_ART_OK=false;};
 ELON_ART.src=ELON_ART_URI;
 
-window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;},doExit,leaveExit,exitRect};
+window.__elon={G,get P(){return P;},get LV(){return LV;},get BS(){return BS;},cam,LEVELS,startGame,startFromStage,startLevel,startBlastar,goHome,openStageSelect,warp(i){G.level=i;G.cp=null;G.levelTime=0;if(LEVELS[i].mode==='blastar')startBlastar();else{startLevel();G.introT=99;}},keys,touch,update,render,EL,HEADI,ELON_ART,get ELON_ART_OK(){return ELON_ART_OK;},unlockAudio,initAudio,setMusic,toggleMute,SFX,get AC(){return AC;},get muted(){return muted;},get mus(){return mus;},get unlocked(){return unlocked;},getUnlocked,setUnlocked,markCleared,isCleared,getCleared,stageAnnounce,stageLabelUI,STAGE_TITLES,say,canvasXY,hitTestUI,stageTileLayout,stagePlayBtn,get inputMode(){return inputMode;},get rotateBlock(){return rotateBlock;},BUILD_TAG,layout,launchRect,get fsAttempts(){return fsAttempts;},isStandalone,get deferredInstall(){return deferredInstall;},ctrlHintLines,TAP_HINT,doExit,leaveExit,exitRect};
 })();
 
 </script></body></html>
