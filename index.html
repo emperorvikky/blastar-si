@@ -982,7 +982,7 @@ function render(a){ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.imageSmoo
  if(G.paused)drawPauseMenu();}
 
 // ===== INPUT =====
-const BUILD_TAG='v16-open-browser';
+const BUILD_TAG='v16b-dots-hint';
 let fsFailed=false,lockFailed=false;
 function lockLandscape(){try{const o=screen.orientation;if(o&&o.lock){const p=o.lock('landscape');if(p&&p.catch)p.catch(()=>{lockFailed=true;rotImpossible();});}else{lockFailed=true;rotImpossible();}}catch(e){lockFailed=true;rotImpossible();}}
 function canLockOrientation(){try{return !!(screen.orientation&&screen.orientation.lock)&&fsSupported();}catch(e){return false;}}
@@ -1244,7 +1244,7 @@ function openInBrowser(){const host='blastar.si',fb=encodeURIComponent('https://
  if(IN_APP_IOS){navTo('x-safari-https://'+host+'/');}
  else{navTo('intent://'+host+'/#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+fb+';end');
   setTimeout(()=>{if(!left&&document.visibilityState==='visible')navTo('intent://'+host+'/#Intent;scheme=https;S.browser_fallback_url='+fb+';end');},700);}
- setTimeout(()=>{document.removeEventListener('visibilitychange',onHide);if(!left&&document.visibilityState==='visible')showToast(IN_APP_IOS?'Tap \u2022\u2022\u2022 or the share icon, then Open in Safari':'Tap the 3 dots at top-right, then Open in browser');},1500);}
+ setTimeout(()=>{document.removeEventListener('visibilitychange',onHide);if(!left&&document.visibilityState==='visible')showToast(IN_APP_IOS?'Tap \u2022\u2022\u2022 or the share icon, then Open in Safari':'Tap \u22EE next to blastar.si at the bottom, then Open in browser');},1500);}
 function wireOpenBtn(el){if(!el)return;el.textContent=OPEN_LABEL;el.addEventListener('pointerdown',e=>{e.stopPropagation();});el.addEventListener('pointerup',e=>{e.stopPropagation();});el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openInBrowser();});}
 wireOpenBtn(document.getElementById('rotTip2'));wireOpenBtn(document.getElementById('iabOpen'));
 {const it=document.getElementById('iabTip');if(it){const x=document.getElementById('iabX');it.addEventListener('pointerdown',e=>{e.stopPropagation();});it.addEventListener('click',e=>{e.stopPropagation();});
